@@ -12,10 +12,11 @@ import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -49,7 +50,7 @@ public class JUNOClient extends JFrame implements Receivable {
 	 */
 	public JUNOClient() {
 		connectToServer();
-		
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 600, 400);
 		contentPane = new JPanel();
@@ -57,7 +58,7 @@ public class JUNOClient extends JFrame implements Receivable {
 		contentPane.setLayout(new BorderLayout());
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout());
-		
+
 		intializeGameArea();
 		initializeChat();
 
@@ -70,7 +71,7 @@ public class JUNOClient extends JFrame implements Receivable {
 			System.err.println("Error in setting up protocol");
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	private void intializeGameArea() {
@@ -81,9 +82,8 @@ public class JUNOClient extends JFrame implements Receivable {
 		gamePane.add(cardTest, "Center");
 		gamePane.add(startButton, "South");
 		contentPane.add(gamePane, "Center");
-		
-	}
 
+	}
 
 	private void initializeChat() {
 		// center panel
@@ -114,12 +114,12 @@ public class JUNOClient extends JFrame implements Receivable {
 				}
 			}
 		});
-		
+
 		// send button setup
 		JButton send = new JButton("Send");
 		inputPanel.add(send);
 		send.addActionListener(e -> sendChat());
-			
+
 		chatPane.add(inputPanel, "South");
 		contentPane.add(chatPane, "West");
 		chatPane.setVisible(true);
@@ -133,14 +133,34 @@ public class JUNOClient extends JFrame implements Receivable {
 		protocol.sendMessage(message);
 	}
 
-
 	private void sendChat() {
-		System.out.println("executed sendText()");
+		JSONObject message = new JSONObject();
+
 		String chatSend;
 		chatSend = chatInputArea.getText();
-		JSONObject message = new JSONObject();
+
+		if (chatSend == "//whois") {
+			message.put("type", "whois");
+			return;
+		}
+		
 		message.put("type", "chat");
+
+		String whisperRegex = "(?<=^|(?<=[^a-zA-Z0-9-_\\\\.]))@([A-Za-z][A-Za-z0-9_]+)";
+		Matcher matcher = Pattern.compile(whisperRegex).matcher(chatSend);
+		if (matcher.find()) {
+			System.out.println(matcher.group(0));
+			StringBuilder whisperRecipient = new StringBuilder(matcher.group(0));
+			whisperRecipient.deleteCharAt(0);
+			System.out.println(whisperRecipient);
+			message.put("username", whisperRecipient);
+			chatSend += " (Whispered from " + username + ")";
+		}
+
 		message.put("message", chatSend);
+
+		System.out.println("executed sendText()");
+
 		protocol.sendMessage(message);
 		printToChat(username + ": " + chatSend);
 		chatInputArea.setText("");
@@ -151,11 +171,13 @@ public class JUNOClient extends JFrame implements Receivable {
 		System.out.println(message.toString());
 		printToChat(message.getString("fromUser") + ": " + message.getString("message"));
 	}
+
 	public void printToChat(String chat) {
 		chatArea.append(chat + "\n");
 		chatArea.setCaretPosition(chatArea.getDocument().getLength());
 
 	}
+
 	@Override
 	public void setUsername(String user) {
 		if (!userSet) {
@@ -188,6 +210,5 @@ public class JUNOClient extends JFrame implements Receivable {
 			}
 		});
 	}
-	
 
 }
