@@ -127,7 +127,7 @@ public class JUNOClient extends JFrame implements Receivable {
 	}
 
 	private void startGame() {
-		chatArea.append("Requesting New Game\n");
+		printToChat("Requesting New Game\n");
 		JSONObject message = new JSONObject();
 		message.put("type", "startGame");
 		protocol.sendMessage(message);
@@ -142,16 +142,20 @@ public class JUNOClient extends JFrame implements Receivable {
 		message.put("type", "chat");
 		message.put("message", chatSend);
 		protocol.sendMessage(message);
-		chatArea.append(username + ": " + chatSend + "\n");
+		printToChat(username + ": " + chatSend);
 		chatInputArea.setText("");
 	}
 
 	private void handleChat(JSONObject m) {
 		JSONObject message = m;
 		System.out.println(message.toString());
-		chatArea.append(message.getString("fromUser") + ": " + message.getString("message") + "\n");
+		printToChat(message.getString("fromUser") + ": " + message.getString("message"));
 	}
-	
+	public void printToChat(String chat) {
+		chatArea.append(chat + "\n");
+		chatArea.setCaretPosition(chatArea.getDocument().getLength());
+
+	}
 	@Override
 	public void setUsername(String user) {
 		if (!userSet) {
