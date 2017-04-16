@@ -23,6 +23,7 @@ import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import junoServer.Protocol;
@@ -139,11 +140,14 @@ public class JUNOClient extends JFrame implements Receivable {
 		String chatSend;
 		chatSend = chatInputArea.getText();
 
-		if (chatSend == "//whois") {
+		if (chatSend.equals("/whois")) {
 			message.put("type", "whois");
+			protocol.sendMessage(message);
+			chatInputArea.setText("");
+			printToChat("whois requested");
 			return;
 		}
-		
+
 		message.put("type", "chat");
 
 		String whisperRegex = "(?<=^|(?<=[^a-zA-Z0-9-_\\\\.]))@([A-Za-z][A-Za-z0-9_]+)";
@@ -172,6 +176,18 @@ public class JUNOClient extends JFrame implements Receivable {
 		printToChat(message.getString("fromUser") + ": " + message.getString("message"));
 	}
 
+	private void handleWhois(JSONObject m) {
+		JSONArray usernames = m.getJSONObject("message").getJSONArray("users");
+		if (usernames.length() == 1) {
+			printToChat("ALLL BY MYSEEEELF! you're the only one online... loser");
+		}
+		printToChat("Users Currently Online:");
+		for (int i = 0; i < usernames.length(); i++) {
+			printToChat((i + 1) + ": " + usernames.getJSONObject(i).get("username").toString());
+		}
+
+	}
+
 	public void printToChat(String chat) {
 		chatArea.append(chat + "\n");
 		chatArea.setCaretPosition(chatArea.getDocument().getLength());
@@ -188,11 +204,18 @@ public class JUNOClient extends JFrame implements Receivable {
 	@Override
 	public void giveMessage(JSONObject m) {
 		JSONObject message = m;
-
-		if (message.getString("type").equals("chat")) {
+		System.out.println(m.toString());
+		String type = message.getString("type");
+		switch (type) {
+		case ("chat"): {
 			handleChat(message);
+			break;
 		}
-
+		case ("whois"): {
+			handleWhois(message);
+			break;
+		}
+		}
 	}
 
 	/**
