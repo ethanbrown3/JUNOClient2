@@ -45,6 +45,7 @@ public class JUNOClient extends JFrame implements Receivable {
 	private Protocol protocol;
 	private String username;
 	private boolean userSet = false;
+	private boolean gameStarted = false;
 
 	/**
 	 * 
@@ -53,7 +54,7 @@ public class JUNOClient extends JFrame implements Receivable {
 		connectToServer();
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 600, 400);
+		setBounds(100, 100, 700, 500);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout());
@@ -77,11 +78,8 @@ public class JUNOClient extends JFrame implements Receivable {
 
 	private void intializeGameArea() {
 		JPanel gamePane = new JPanel(new BorderLayout());
-		JButton startButton = new JButton("Start Game");
-		startButton.addActionListener(e -> startGame());
 		Card cardTest = new Card(Card.Color.RED, Card.Value.ZERO);
 		gamePane.add(cardTest, "Center");
-		gamePane.add(startButton, "South");
 		contentPane.add(gamePane, "Center");
 
 	}
@@ -120,7 +118,9 @@ public class JUNOClient extends JFrame implements Receivable {
 		JButton send = new JButton("Send");
 		inputPanel.add(send);
 		send.addActionListener(e -> sendChat());
-
+		JButton startButton = new JButton("Start Game");
+		startButton.addActionListener(e -> startGame());
+		inputPanel.add(startButton);
 		chatPane.add(inputPanel, "South");
 		contentPane.add(chatPane, "West");
 		chatPane.setVisible(true);
@@ -130,8 +130,18 @@ public class JUNOClient extends JFrame implements Receivable {
 	private void startGame() {
 		printToChat("Requesting New Game\n");
 		JSONObject message = new JSONObject();
-		message.put("type", "startGame");
+		message.put("type", "application");
+		JSONObject action = new JSONObject();
+
+		if (gameStarted) {
+			action.put("action", "joinGame");
+		} else {
+			action.put("action", "startGame");
+		}
+		action.put("module", "juno");
+		message.put("message", action);
 		protocol.sendMessage(message);
+
 	}
 
 	private void sendChat() {
@@ -179,7 +189,7 @@ public class JUNOClient extends JFrame implements Receivable {
 	private void handleWhois(JSONObject m) {
 		JSONArray usernames = m.getJSONObject("message").getJSONArray("users");
 		if (usernames.length() == 1) {
-			printToChat("ALLL BY MYSEEEELF! you're the only one online... loser");
+			printToChat("You're the only one online... loser");
 		}
 		printToChat("Users Currently Online:");
 		for (int i = 0; i < usernames.length(); i++) {
@@ -204,7 +214,7 @@ public class JUNOClient extends JFrame implements Receivable {
 	@Override
 	public void giveMessage(JSONObject m) {
 		JSONObject message = m;
-		System.out.println(m.toString());
+		System.out.println(message.toString());
 		String type = message.getString("type");
 		switch (type) {
 		case ("chat"): {
@@ -223,7 +233,7 @@ public class JUNOClient extends JFrame implements Receivable {
 
 	private void handleApplication(JSONObject message) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	/**
