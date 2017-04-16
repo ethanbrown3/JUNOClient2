@@ -215,7 +215,15 @@ public class JUNOClient extends JFrame implements Receivable {
 			handleWhois(message);
 			break;
 		}
+		case ("application"): {
+			handleApplication(message);
 		}
+		}
+	}
+
+	private void handleApplication(JSONObject message) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	/**
