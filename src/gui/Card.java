@@ -1,47 +1,35 @@
 package gui;
 
 import javax.swing.ImageIcon;
-import javax.swing.JLabel;
+import javax.swing.JButton;
 
-public class Card extends JLabel {
+public class Card extends JButton {
+	private static final long serialVersionUID = 1700177456984817126L;
+
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -919021369126386690L;
-
-	public static enum Color {
+	static enum Color {
 		RED, BLUE, GREEN, YELLOW, WILD
 	};
 
-	public static enum Value {
-		ZERO("00"), ONE("01"), TWO("02"), THREE("03"), FOUR("04"), FIVE("05"), SIX("06"), SEVEN("07"), EIGHT(
-				"08"), NINE("09"), SKIP("S"), DRAW2("D2"), REVERSE("R"), WILD("00"), WILDD4("D4");
-		private String numVal;
-
-		Value(String numVal) {
-			this.numVal = numVal;
-		}
-
-		public String getNumVal() {
-			return numVal;
-		}
+	static enum Value {
+		ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, SKIP, DRAW2, REVERSE, WILD, WILDD4
 	};
 
 	private Color color;
 	private Value value;
 
-	public Card(Color color, Value value) {
+	Card(Color color, Value value) {
 		setColor(color);
 		setValue(value);
 		setImage();
 	}
 
 	private void setImage() {
-		ImageIcon cardImage = new ImageIcon(getClass().getResource("/resources/back.png"));
-//		getClass().getResource("/resources/" + color + "-" + value.numVal + ".png"));
-
+		ImageIcon cardImage = new ImageIcon(
+				getClass().getResource("/images/" + getColor().toString() + "-" + getValue().toString() + ".png"));
 		setIcon(cardImage);
-
 	}
 
 	private Color getColor() {
@@ -58,10 +46,6 @@ public class Card extends JLabel {
 
 	private void setValue(Value value) {
 		this.value = value;
-	}
-
-	public static void main(String[] args) {
-
 	}
 
 }

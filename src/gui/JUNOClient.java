@@ -26,6 +26,7 @@ import javax.swing.border.EmptyBorder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import gui.Card.Value;
 import junoServer.Protocol;
 import junoServer.Receivable;
 
@@ -46,6 +47,7 @@ public class JUNOClient extends JFrame implements Receivable {
 	private String username;
 	private boolean userSet = false;
 	private boolean gameStarted = false;
+	private JPanel gamePane;
 
 	/**
 	 * 
@@ -77,7 +79,7 @@ public class JUNOClient extends JFrame implements Receivable {
 	}
 
 	private void intializeGameArea() {
-		JPanel gamePane = new JPanel(new BorderLayout());
+		gamePane = new JPanel(new BorderLayout());
 		Card cardTest = new Card(Card.Color.RED, Card.Value.ZERO);
 		gamePane.add(cardTest, "Center");
 		contentPane.add(gamePane, "Center");
@@ -215,22 +217,45 @@ public class JUNOClient extends JFrame implements Receivable {
 	public void giveMessage(JSONObject m) {
 		JSONObject message = m;
 		System.out.println(message.toString());
-		String type = message.getString("type");
-		switch (type) {
-		case ("chat"): {
-			handleChat(message);
-			break;
+		if (message.has("type")) {
+			String type = message.getString("type");
+			switch (type) {
+			case ("chat"): {
+				handleChat(message);
+				break;
+			}
+			case ("whois"): {
+				handleWhois(message);
+				break;
+			}
+			case ("application"): {
+				handleApplication(message);
+			}
+			}
 		}
-		case ("whois"): {
-			handleWhois(message);
-			break;
-		}
-		case ("application"): {
-			handleApplication(message);
-		}
+		if (message.has("action")) {
+			String action = message.getString("action");
+			switch (action) {
+			case ("dealCard"): {
+				handleDealCard(message);
+			}
+			}
 		}
 	}
 
+	private void handleDealCard(JSONObject m) {
+		JSONObject message = new JSONObject(m.getString("card"));
+		Card.Value value = Card.Value.valueOf(message.getString("value"));
+		Card.Color color = Card.Color.valueOf(message.getString("color"));
+		Card card = new Card(color, value);
+		placeCard(card);
+		
+	}
+	
+	private void placeCard(Card c) {
+		gamePane.add(c, "Center");
+		gamePane.updateUI();
+	}
 	private void handleApplication(JSONObject message) {
 		// TODO Auto-generated method stub
 
