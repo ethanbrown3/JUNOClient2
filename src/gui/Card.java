@@ -6,9 +6,6 @@ import javax.swing.JButton;
 public class Card extends JButton {
 	private static final long serialVersionUID = 1700177456984817126L;
 
-	/**
-	 * 
-	 */
 	static enum Color {
 		RED, BLUE, GREEN, YELLOW, WILD
 	};

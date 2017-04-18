@@ -53,7 +53,44 @@ public class JunoGUI extends JFrame {
 		gamePane = new JPanel(new BorderLayout());
 		contentPane.add(gamePane, "Center");
 		hand1 = new JPanel(new FlowLayout());
-		gamePane.add(hand1, "South");
+		JScrollPane scrollPane1 = new JScrollPane(hand1, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		gamePane.add(scrollPane1, "South");
+		hand2 = new JPanel(new FlowLayout());
+		JScrollPane scrollPane2 = new JScrollPane(hand2, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		hand3 = new JPanel(new FlowLayout());
+		gamePane.add(scrollPane2, "North");
+		JScrollPane scrollPane3 = new JScrollPane(hand3, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		hand4 = new JPanel(new FlowLayout());
+		gamePane.add(scrollPane3, "West");
+		JScrollPane scrollPane4 = new JScrollPane(hand4, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		gamePane.add(scrollPane4, "East");
+		JPanel gameControl = new JPanel(new FlowLayout());
+		// start game button
+		JButton startButton = new JButton("Start Game");
+		startButton.addActionListener(e -> startGame());
+		gameControl.add(startButton);
+		// reset game button
+		JButton resetButton = new JButton("Reset Game");
+		resetButton.addActionListener(e -> resetGame());
+		gameControl.add(resetButton);
+		
+		gamePane.add(gameControl, "North");
+
+	}
+
+	private void resetGame() {
+		JSONObject message = new JSONObject();
+		message.put("type", "application");
+		JSONObject action = new JSONObject();
+		action.put("action", "reset");
+		message.put("message", action);
+		System.out.println(message);
+		protocol.sendMessage(message);
+
 	}
 
 	private void initializeChat() {
@@ -65,7 +102,7 @@ public class JunoGUI extends JFrame {
 		chatArea.setWrapStyleWord(true);
 		JScrollPane chatScroll = new JScrollPane(chatArea);
 		chatScroll.setSize(150, 200);
-		chatScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		chatScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		chatPane.add(chatScroll, "Center");
 
 		// south panel
@@ -75,7 +112,7 @@ public class JunoGUI extends JFrame {
 		chatInputArea.setLineWrap(true);
 		chatInputArea.setWrapStyleWord(true);
 		JScrollPane inputScroll = new JScrollPane(chatInputArea);
-		inputScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		inputScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		inputPanel.add(inputScroll);
 		chatInputArea.addKeyListener(new KeyAdapter() {
 			@Override
@@ -90,9 +127,7 @@ public class JunoGUI extends JFrame {
 		JButton send = new JButton("Send");
 		inputPanel.add(send);
 		send.addActionListener(e -> sendChat());
-		JButton startButton = new JButton("Start Game");
-		startButton.addActionListener(e -> startGame());
-		inputPanel.add(startButton);
+
 		chatPane.add(inputPanel, "South");
 		contentPane.add(chatPane, "West");
 		chatPane.setVisible(true);
@@ -105,6 +140,7 @@ public class JunoGUI extends JFrame {
 		String chatSend;
 		chatSend = chatInputArea.getText();
 
+		// check for whois message
 		if (chatSend.equals("/whois")) {
 			message.put("type", "whois");
 			protocol.sendMessage(message);
@@ -114,6 +150,7 @@ public class JunoGUI extends JFrame {
 		}
 		message.put("type", "chat");
 
+		// check for whisper @<user>
 		String whisperRegex = "(?<=^|(?<=[^a-zA-Z0-9-_\\\\.]))@([A-Za-z][A-Za-z0-9_]+)";
 		Matcher matcher = Pattern.compile(whisperRegex).matcher(chatSend);
 		if (matcher.find()) {
@@ -126,18 +163,9 @@ public class JunoGUI extends JFrame {
 		}
 
 		message.put("message", chatSend);
-
-		System.out.println("executed sendText()");
-
 		protocol.sendMessage(message);
 		printToChat(username + ": " + chatSend);
 		chatInputArea.setText("");
-	}
-
-	public void printToChat(String chat) {
-		chatArea.append(chat + "\n");
-		chatArea.setCaretPosition(chatArea.getDocument().getLength());
-
 	}
 
 	private void startGame() {
@@ -157,9 +185,16 @@ public class JunoGUI extends JFrame {
 		protocol.sendMessage(message);
 
 	}
-	public void placeCard(Card c, String hand) {
+
+	public void printToChat(String chat) {
+		chatArea.append(chat + "\n");
+		chatArea.setCaretPosition(chatArea.getDocument().getLength());
+
+	}
+
+	public void placeCard(Card c, String playerHand) {
 		hand1.add(c);
 		gamePane.updateUI();
 	}
-	
+
 }

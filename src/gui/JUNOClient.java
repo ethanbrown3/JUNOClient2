@@ -35,9 +35,7 @@ import junoServer.Receivable;
  *
  */
 public class JUNOClient implements Receivable {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = -2227017723330822281L;
 
 	private Protocol protocol;
@@ -45,9 +43,6 @@ public class JUNOClient implements Receivable {
 	private boolean userSet = false;
 	private JunoGUI gui;
 
-	/**
-	 * 
-	 */
 	public JUNOClient() {
 		connectToServer();
 		gui = new JunoGUI(protocol, username);
@@ -113,7 +108,13 @@ public class JUNOClient implements Receivable {
 		}
 		gui.printToChat("Users Currently Online:");
 		for (int i = 0; i < usernames.length(); i++) {
-			gui.printToChat((i + 1) + ": " + usernames.getJSONObject(i).get("username").toString());
+			String whoIsOutput = (i + 1) + ": " + usernames.getJSONObject(i).get("username").toString();
+			String module = usernames.getJSONObject(i).get("modules").toString();
+			if (!module.isEmpty())
+				whoIsOutput += " module: " + module;
+		
+			gui.printToChat(whoIsOutput);
+
 		}
 
 	}
@@ -127,10 +128,6 @@ public class JUNOClient implements Receivable {
 
 	}
 
-
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
