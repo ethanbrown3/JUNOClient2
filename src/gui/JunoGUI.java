@@ -4,7 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -13,6 +14,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
+
+import org.json.JSONObject;
 
 import junoServer.Protocol;
 
@@ -26,12 +29,13 @@ public class JunoGUI extends JFrame {
 	private JTextArea chatInputArea;
 	private Protocol protocol;
 	private String username;
-	private boolean userSet = false;
 	private boolean gameStarted = false;
 	private JPanel gamePane;
 	private JPanel hand1, hand2, hand3, hand4;
 
-	public JunoGUI() {
+	public JunoGUI(Protocol protocol, String username) {
+		this.protocol = protocol;
+		this.username = username;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 800, 500);
 		contentPane = new JPanel();
@@ -47,8 +51,6 @@ public class JunoGUI extends JFrame {
 
 	private void intializeGameArea() {
 		gamePane = new JPanel(new BorderLayout());
-		// Card cardTest = new Card(Card.Color.RED, Card.Value.ZERO);
-		// gamePane.add(cardTest, "Center");
 		contentPane.add(gamePane, "Center");
 		hand1 = new JPanel(new FlowLayout());
 		gamePane.add(hand1, "South");
@@ -97,4 +99,67 @@ public class JunoGUI extends JFrame {
 		chatInputArea.requestFocusInWindow();
 	}
 
+	private void sendChat() {
+		JSONObject message = new JSONObject();
+
+		String chatSend;
+		chatSend = chatInputArea.getText();
+
+		if (chatSend.equals("/whois")) {
+			message.put("type", "whois");
+			protocol.sendMessage(message);
+			chatInputArea.setText("");
+			printToChat("whois requested");
+			return;
+		}
+		message.put("type", "chat");
+
+		String whisperRegex = "(?<=^|(?<=[^a-zA-Z0-9-_\\\\.]))@([A-Za-z][A-Za-z0-9_]+)";
+		Matcher matcher = Pattern.compile(whisperRegex).matcher(chatSend);
+		if (matcher.find()) {
+			System.out.println(matcher.group(0));
+			StringBuilder whisperRecipient = new StringBuilder(matcher.group(0));
+			whisperRecipient.deleteCharAt(0);
+			System.out.println(whisperRecipient);
+			message.put("username", whisperRecipient);
+			chatSend += " (Whispered from " + username + ")";
+		}
+
+		message.put("message", chatSend);
+
+		System.out.println("executed sendText()");
+
+		protocol.sendMessage(message);
+		printToChat(username + ": " + chatSend);
+		chatInputArea.setText("");
+	}
+
+	public void printToChat(String chat) {
+		chatArea.append(chat + "\n");
+		chatArea.setCaretPosition(chatArea.getDocument().getLength());
+
+	}
+
+	private void startGame() {
+		printToChat("Requesting New Game\n");
+		JSONObject message = new JSONObject();
+		message.put("type", "application");
+		JSONObject action = new JSONObject();
+
+		if (gameStarted) {
+			action.put("action", "joinGame");
+		} else {
+			action.put("action", "startGame");
+			gameStarted = true;
+		}
+		action.put("module", "juno");
+		message.put("message", action);
+		protocol.sendMessage(message);
+
+	}
+	public void placeCard(Card c, String hand) {
+		hand1.add(c);
+		gamePane.updateUI();
+	}
+	
 }
