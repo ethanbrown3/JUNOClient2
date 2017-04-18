@@ -48,6 +48,8 @@ public class JUNOClient extends JFrame implements Receivable {
 	private boolean userSet = false;
 	private boolean gameStarted = false;
 	private JPanel gamePane;
+	private JPanel hand1, hand2, hand3, hand4;
+	
 
 	/**
 	 * 
@@ -56,7 +58,7 @@ public class JUNOClient extends JFrame implements Receivable {
 		connectToServer();
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 700, 500);
+		setBounds(100, 100, 800, 500);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout());
@@ -80,10 +82,11 @@ public class JUNOClient extends JFrame implements Receivable {
 
 	private void intializeGameArea() {
 		gamePane = new JPanel(new BorderLayout());
-		Card cardTest = new Card(Card.Color.RED, Card.Value.ZERO);
-		gamePane.add(cardTest, "Center");
+//		Card cardTest = new Card(Card.Color.RED, Card.Value.ZERO);
+//		gamePane.add(cardTest, "Center");
 		contentPane.add(gamePane, "Center");
-
+		hand1 = new JPanel(new FlowLayout());
+		gamePane.add(hand1, "South");
 	}
 
 	private void initializeChat() {
@@ -182,6 +185,46 @@ public class JUNOClient extends JFrame implements Receivable {
 		chatInputArea.setText("");
 	}
 
+	public void printToChat(String chat) {
+		chatArea.append(chat + "\n");
+		chatArea.setCaretPosition(chatArea.getDocument().getLength());
+
+	}
+
+	@Override
+	public void setUsername(String user) {
+		if (!userSet) {
+			this.username = user;
+		}
+	}
+
+	@Override
+	public void giveMessage(JSONObject m) {
+		JSONObject message = m;
+//		System.out.println(message.toString());
+		if (message.has("type")) {
+			String type = message.getString("type");
+			switch (type) {
+			case ("chat"): {
+				handleChat(message);
+				break;
+			}
+			case ("whois"): {
+				handleWhois(message);
+				break;
+			}
+			}
+		}
+		if (message.has("action")) {
+			String action = message.getString("action");
+			switch (action) {
+			case ("dealCard"): {
+				handleDealCard(message);
+				break;
+			}
+			}
+		}
+	}
 	private void handleChat(JSONObject m) {
 		JSONObject message = m;
 		System.out.println(message.toString());
@@ -199,66 +242,19 @@ public class JUNOClient extends JFrame implements Receivable {
 		}
 
 	}
-
-	public void printToChat(String chat) {
-		chatArea.append(chat + "\n");
-		chatArea.setCaretPosition(chatArea.getDocument().getLength());
-
-	}
-
-	@Override
-	public void setUsername(String user) {
-		if (!userSet) {
-			this.username = user;
-		}
-	}
-
-	@Override
-	public void giveMessage(JSONObject m) {
-		JSONObject message = m;
-		System.out.println(message.toString());
-		if (message.has("type")) {
-			String type = message.getString("type");
-			switch (type) {
-			case ("chat"): {
-				handleChat(message);
-				break;
-			}
-			case ("whois"): {
-				handleWhois(message);
-				break;
-			}
-			case ("application"): {
-				handleApplication(message);
-			}
-			}
-		}
-		if (message.has("action")) {
-			String action = message.getString("action");
-			switch (action) {
-			case ("dealCard"): {
-				handleDealCard(message);
-			}
-			}
-		}
-	}
-
+	
 	private void handleDealCard(JSONObject m) {
 		JSONObject message = new JSONObject(m.getString("card"));
 		Card.Value value = Card.Value.valueOf(message.getString("value"));
 		Card.Color color = Card.Color.valueOf(message.getString("color"));
 		Card card = new Card(color, value);
-		placeCard(card);
+		placeCard(card, hand1);
 		
 	}
 	
-	private void placeCard(Card c) {
-		gamePane.add(c, "Center");
+	private void placeCard(Card c, JPanel hand) {
+		hand.add(c);
 		gamePane.updateUI();
-	}
-	private void handleApplication(JSONObject message) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/**
