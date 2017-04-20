@@ -44,5 +44,15 @@ public class Card extends JButton {
 	private void setValue(Value value) {
 		this.value = value;
 	}
+	
+	
+	public boolean equals(Card card) {
+		
+		return ((this.getValue().equals(card.getValue())) && (this.getColor().equals(card.getColor())));
+	}
 
+	@Override
+	public int hashCode() {
+		return super.hashCode();
+	}
 }

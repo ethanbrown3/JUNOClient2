@@ -6,27 +6,12 @@
  */
 package gui;
 
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
-import java.awt.FlowLayout;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.border.EmptyBorder;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import gui.Card.Value;
 import junoServer.Protocol;
 import junoServer.Receivable;
 
@@ -35,8 +20,6 @@ import junoServer.Receivable;
  *
  */
 public class JUNOClient implements Receivable {
-
-	private static final long serialVersionUID = -2227017723330822281L;
 
 	private Protocol protocol;
 	private String username;
@@ -91,7 +74,7 @@ public class JUNOClient implements Receivable {
 		if (json.has("action")) {
 			String action = json.getString("action");
 			if (action.equals("dealCard")) {
-				handleDealCard(json);
+				gui.handleDealCard(json);
 			}
 
 		}
@@ -102,26 +85,51 @@ public class JUNOClient implements Receivable {
 		JSONObject json = m;
 		JSONObject message = json.getJSONObject("message");
 		if (message.has("type")) {
-			if (message.getString("type").equals("reset")) {
+			String type = message.getString("type");
+			switch (type) {
+			case ("reset"): {
 				System.out.println("reset recieved");
 				gui.resetGame();
+				break;
+			}
+			case ("error"): {
+				gui.printToChat(json.toString());
+				break;
+			}
 			}
 		}
 		if (message.has("action")) {
 			String action = message.getString("action");
 			switch (action) {
-			case ("dealCard"): {
-				handleDealCard(json);
+			case ("cardDealt"): {
+				handleCardDealt(message);
+				break;
 			}
-
+			case ("playCard"): {
+				if (message.getString("user").equals(this.username)) {
+					JSONObject cardMessage = new JSONObject(message.getString("card"));
+					Card.Value value = Card.Value.valueOf(cardMessage.getString("value"));
+					Card.Color color = Card.Color.valueOf(cardMessage.getString("color"));
+					Card card = new Card(color, value);
+					gui.getHand1().removeCard(card);
+				}
+			}
 			}
 		}
+		// {"type":"application","message":{"action":"playCard","user":"Ethan2","card":"{\"color\":\"YELLOW\",\"value\":\"REVERSE\"}"}}
+	}
 
+	private void handleCardDealt(JSONObject m) {
+		JSONObject dealtCard = m;
+		String user = dealtCard.getString("user");
+		if (!user.equals(this.username)) {
+
+		}
 	}
 
 	private void handleChat(JSONObject m) {
 		JSONObject message = m;
-		System.out.println(message.toString());
+		System.out.println("chat message:" + message.toString());
 		gui.printToChat(message.getString("fromUser") + ": " + message.getString("message"));
 	}
 
@@ -143,36 +151,11 @@ public class JUNOClient implements Receivable {
 
 	}
 
-	private void handleDealCard(JSONObject m) {
-		JSONObject message = new JSONObject(m.getString("card"));
-		Card.Value value = Card.Value.valueOf(message.getString("value"));
-		Card.Color color = Card.Color.valueOf(message.getString("color"));
-		Card card = new Card(color, value);
-		card.addActionListener(e -> playCard(value.toString(), color.toString()));
-		gui.placeCard(card, username);
-
-	}
-
-	private void playCard(String val, String col) {
-		JSONObject cardMessage = new JSONObject();
-		cardMessage.put("color", col);
-		cardMessage.put("value", val);
-		JSONObject action = new JSONObject();
-		action.put("action", "playCard");
-		action.put("card", cardMessage);
-		action.put("module", "juno");
-		JSONObject message = new JSONObject();
-		message.put("type", "application");
-		message.put("message", action);
-		protocol.sendMessage(message);
-		System.out.println(message);
-	}
-
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					JUNOClient client = new JUNOClient();
+					new JUNOClient();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

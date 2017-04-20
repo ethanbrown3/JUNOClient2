@@ -29,9 +29,8 @@ public class JunoGUI extends JFrame {
 	private JTextArea chatInputArea;
 	private Protocol protocol;
 	private String username;
-	private boolean gameStarted = false;
 	private JPanel gamePane;
-	private JPanel hand1, hand2, hand3, hand4;
+	private Hand hand1, hand2, hand3, hand4;
 
 	public JunoGUI(Protocol protocol, String username) {
 		this.protocol = protocol;
@@ -51,18 +50,18 @@ public class JunoGUI extends JFrame {
 
 	private void intializeGameArea() {
 		gamePane = new JPanel(new BorderLayout());
-		hand1 = new JPanel(new FlowLayout());
+		hand1 = new Hand();
 		JScrollPane scrollPane1 = new JScrollPane(hand1, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		gamePane.add(scrollPane1, "South");
-		hand2 = new JPanel(new FlowLayout());
+		hand2 = new Hand();
 		JScrollPane scrollPane2 = new JScrollPane(hand2, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		hand3 = new JPanel(new FlowLayout());
+		hand3 = new Hand();
 		gamePane.add(scrollPane2, "North");
 		JScrollPane scrollPane3 = new JScrollPane(hand3, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		hand4 = new JPanel(new FlowLayout());
+		hand4 = new Hand();
 		gamePane.add(scrollPane3, "West");
 		JScrollPane scrollPane4 = new JScrollPane(hand4, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -94,7 +93,7 @@ public class JunoGUI extends JFrame {
 		dealCard.put("type", "application");
 		dealCard.put("message", message);
 		protocol.sendMessage(dealCard);
-		System.out.println(dealCard);
+		System.out.println("recieved: " + dealCard);
 	}
 
 	private void initializeChat() {
@@ -158,10 +157,8 @@ public class JunoGUI extends JFrame {
 		String whisperRegex = "(?<=^|(?<=[^a-zA-Z0-9-_\\\\.]))@([A-Za-z][A-Za-z0-9_]+)";
 		Matcher matcher = Pattern.compile(whisperRegex).matcher(chatSend);
 		if (matcher.find()) {
-			System.out.println(matcher.group(0));
 			StringBuilder whisperRecipient = new StringBuilder(matcher.group(0));
 			whisperRecipient.deleteCharAt(0);
-			System.out.println(whisperRecipient);
 			message.put("username", whisperRecipient);
 			chatSend += " (Whispered from " + username + ")";
 		}
@@ -177,15 +174,9 @@ public class JunoGUI extends JFrame {
 		JSONObject message = new JSONObject();
 		message.put("type", "application");
 		JSONObject action = new JSONObject();
-
-//		if (gameStarted) {
-//			action.put("action", "joinGame");
-//		} else {
-			action.put("action", "startGame");
-//		}
+		action.put("action", "startGame");
 		action.put("module", "juno");
 		message.put("message", action);
-		System.out.println(message);
 		protocol.sendMessage(message);
 
 	}
@@ -209,7 +200,7 @@ public class JunoGUI extends JFrame {
 	}
 
 	public void placeCard(Card c, String playerHand) {
-		hand1.add(c);
+		hand1.addCard(c);
 		gamePane.updateUI();
 	}
 
@@ -220,5 +211,45 @@ public class JunoGUI extends JFrame {
 
 	}
 
+	public void handleDealCard(JSONObject m) {
+		JSONObject message = new JSONObject(m.getString("card"));
+		Card.Value value = Card.Value.valueOf(message.getString("value"));
+		Card.Color color = Card.Color.valueOf(message.getString("color"));
+		Card card = new Card(color, value);
+		card.addActionListener(e -> playCard(value.toString(), color.toString()));
+		placeCard(card, username);
+
+	}
+
+	private void playCard(String val, String col) {
+		JSONObject cardMessage = new JSONObject();
+		cardMessage.put("color", col);
+		cardMessage.put("value", val);
+		JSONObject action = new JSONObject();
+		action.put("action", "playCard");
+		action.put("card", cardMessage);
+		action.put("module", "juno");
+		JSONObject message = new JSONObject();
+		message.put("type", "application");
+		message.put("message", action);
+		protocol.sendMessage(message);
+		System.out.println("sent: " + message);
+	}
+
+	public Hand getHand1() {
+		return hand1;
+	}
+
+	public Hand getHand2() {
+		return hand2;
+	}
+
+	public Hand getHand3() {
+		return hand3;
+	}
+
+	public Hand getHand4() {
+		return hand4;
+	}
 
 }
