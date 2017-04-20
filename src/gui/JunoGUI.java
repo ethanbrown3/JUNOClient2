@@ -51,7 +51,6 @@ public class JunoGUI extends JFrame {
 
 	private void intializeGameArea() {
 		gamePane = new JPanel(new BorderLayout());
-		contentPane.add(gamePane, "Center");
 		hand1 = new JPanel(new FlowLayout());
 		JScrollPane scrollPane1 = new JScrollPane(hand1, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -68,6 +67,7 @@ public class JunoGUI extends JFrame {
 		JScrollPane scrollPane4 = new JScrollPane(hand4, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		gamePane.add(scrollPane4, "East");
+
 		JPanel gameControl = new JPanel(new FlowLayout());
 		// start game button
 		JButton startButton = new JButton("Start Game");
@@ -75,22 +75,26 @@ public class JunoGUI extends JFrame {
 		gameControl.add(startButton);
 		// reset game button
 		JButton resetButton = new JButton("Reset Game");
-		resetButton.addActionListener(e -> resetGame());
+		resetButton.addActionListener(e -> sendResetGame());
 		gameControl.add(resetButton);
-		
+		// draw card button
+		JButton drawCardButton = new JButton("Draw Card");
+		drawCardButton.addActionListener(e -> drawCard());
+		gameControl.add(drawCardButton);
 		gamePane.add(gameControl, "North");
+		contentPane.add(gamePane, "Center");
 
 	}
 
-	private void resetGame() {
+	private void drawCard() {
 		JSONObject message = new JSONObject();
-		message.put("type", "application");
-		JSONObject action = new JSONObject();
-		action.put("action", "reset");
-		message.put("message", action);
-		System.out.println(message);
-		protocol.sendMessage(message);
-
+		message.put("action", "dealCard");
+		message.put("module", "juno");
+		JSONObject dealCard = new JSONObject();
+		dealCard.put("type", "application");
+		dealCard.put("message", message);
+		protocol.sendMessage(dealCard);
+		System.out.println(dealCard);
 	}
 
 	private void initializeChat() {
@@ -174,14 +178,26 @@ public class JunoGUI extends JFrame {
 		message.put("type", "application");
 		JSONObject action = new JSONObject();
 
-		if (gameStarted) {
-			action.put("action", "joinGame");
-		} else {
+//		if (gameStarted) {
+//			action.put("action", "joinGame");
+//		} else {
 			action.put("action", "startGame");
-			gameStarted = true;
-		}
+//		}
 		action.put("module", "juno");
 		message.put("message", action);
+		System.out.println(message);
+		protocol.sendMessage(message);
+
+	}
+
+	private void sendResetGame() {
+		JSONObject message = new JSONObject();
+		message.put("type", "application");
+		JSONObject action = new JSONObject();
+		action.put("action", "reset");
+		action.put("module", "juno");
+		message.put("message", action);
+		System.out.println("sent: " + message);
 		protocol.sendMessage(message);
 
 	}
@@ -196,5 +212,13 @@ public class JunoGUI extends JFrame {
 		hand1.add(c);
 		gamePane.updateUI();
 	}
+
+	public void resetGame() {
+		gamePane.removeAll();
+		intializeGameArea();
+		gamePane.updateUI();
+
+	}
+
 
 }

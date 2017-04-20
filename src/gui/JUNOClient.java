@@ -69,30 +69,54 @@ public class JUNOClient implements Receivable {
 
 	@Override
 	public void giveMessage(JSONObject m) {
-		JSONObject message = m;
-		// System.out.println(message.toString());
-		if (message.has("type")) {
-			String type = message.getString("type");
+		JSONObject json = m;
+		if (json.has("type")) {
+			String type = json.getString("type");
 			switch (type) {
 			case ("chat"): {
-				handleChat(message);
+				handleChat(json);
 				break;
 			}
 			case ("whois"): {
-				handleWhois(message);
+				handleWhois(json);
 				break;
 			}
+			case ("application"): {
+				handleApplication(json);
+				break;
+			}
+
+			}
+		}
+		if (json.has("action")) {
+			String action = json.getString("action");
+			if (action.equals("dealCard")) {
+				handleDealCard(json);
+			}
+
+		}
+
+	}
+
+	private void handleApplication(JSONObject m) {
+		JSONObject json = m;
+		JSONObject message = json.getJSONObject("message");
+		if (message.has("type")) {
+			if (message.getString("type").equals("reset")) {
+				System.out.println("reset recieved");
+				gui.resetGame();
 			}
 		}
 		if (message.has("action")) {
 			String action = message.getString("action");
 			switch (action) {
 			case ("dealCard"): {
-				handleDealCard(message);
-				break;
+				handleDealCard(json);
 			}
+
 			}
 		}
+
 	}
 
 	private void handleChat(JSONObject m) {
@@ -112,7 +136,7 @@ public class JUNOClient implements Receivable {
 			String module = usernames.getJSONObject(i).get("modules").toString();
 			if (!module.isEmpty())
 				whoIsOutput += " module: " + module;
-		
+
 			gui.printToChat(whoIsOutput);
 
 		}
@@ -124,8 +148,24 @@ public class JUNOClient implements Receivable {
 		Card.Value value = Card.Value.valueOf(message.getString("value"));
 		Card.Color color = Card.Color.valueOf(message.getString("color"));
 		Card card = new Card(color, value);
+		card.addActionListener(e -> playCard(value.toString(), color.toString()));
 		gui.placeCard(card, username);
 
+	}
+
+	private void playCard(String val, String col) {
+		JSONObject cardMessage = new JSONObject();
+		cardMessage.put("color", col);
+		cardMessage.put("value", val);
+		JSONObject action = new JSONObject();
+		action.put("action", "playCard");
+		action.put("card", cardMessage);
+		action.put("module", "juno");
+		JSONObject message = new JSONObject();
+		message.put("type", "application");
+		message.put("message", action);
+		protocol.sendMessage(message);
+		System.out.println(message);
 	}
 
 	public static void main(String[] args) {
