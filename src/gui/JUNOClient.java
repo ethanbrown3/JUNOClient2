@@ -89,7 +89,7 @@ public class JUNOClient implements Receivable {
 			switch (type) {
 			case ("reset"): {
 				System.out.println("reset recieved");
-				gui.resetGame();
+				gui.resetGamePanel();
 				break;
 			}
 			case ("error"): {
@@ -116,7 +116,6 @@ public class JUNOClient implements Receivable {
 			}
 			}
 		}
-		// {"type":"application","message":{"action":"playCard","user":"Ethan2","card":"{\"color\":\"YELLOW\",\"value\":\"REVERSE\"}"}}
 	}
 
 	private void handleCardDealt(JSONObject m) {

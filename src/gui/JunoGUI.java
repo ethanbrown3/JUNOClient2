@@ -66,11 +66,11 @@ public class JunoGUI extends JFrame {
 		JScrollPane scrollPane4 = new JScrollPane(hand4, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		gamePane.add(scrollPane4, "East");
-
+		
 		JPanel gameControl = new JPanel(new FlowLayout());
 		// start game button
 		JButton startButton = new JButton("Start Game");
-		startButton.addActionListener(e -> startGame());
+		startButton.addActionListener(e -> sendStartGame());
 		gameControl.add(startButton);
 		// reset game button
 		JButton resetButton = new JButton("Reset Game");
@@ -168,8 +168,8 @@ public class JunoGUI extends JFrame {
 		printToChat(username + ": " + chatSend);
 		chatInputArea.setText("");
 	}
-
-	private void startGame() {
+	
+	private void sendStartGame() {
 		printToChat("Requesting New Game\n");
 		JSONObject message = new JSONObject();
 		message.put("type", "application");
@@ -204,7 +204,7 @@ public class JunoGUI extends JFrame {
 		gamePane.updateUI();
 	}
 
-	public void resetGame() {
+	public void resetGamePanel() {
 		gamePane.removeAll();
 		intializeGameArea();
 		gamePane.updateUI();
