@@ -4,19 +4,29 @@ import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
+import gui.Card.CardOrientation;
+
 public class Hand extends JPanel {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5586729830433228986L;
 	private String username;
 	private ArrayList<Card> cards;
-
-	public Hand() {
+	private CardOrientation orientation;
+	
+	public Hand(CardOrientation o) {
+		setOrientation(o);
 		cards = new ArrayList<>();
-
 	}
-
+	
 	public void addCard(Card c) {
-		this.add(c);
+		add(c);
 		cards.add(c);
+		updateUI();
 	}
+
+
 
 	public String getUserName() {
 		return username;
@@ -36,4 +46,10 @@ public class Hand extends JPanel {
 		}
 	}
 
+	public CardOrientation getOrientaion() {
+		return orientation;
+	}
+	private void setOrientation(CardOrientation o) {
+		orientation = o;
+	}
 }

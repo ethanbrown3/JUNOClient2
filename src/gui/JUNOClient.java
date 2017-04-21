@@ -30,7 +30,6 @@ public class JUNOClient implements Receivable {
 		connectToServer();
 		gui = new JunoGUI(protocol, username);
 		gui.setVisible(true);
-
 	}
 
 	private void connectToServer() {
@@ -40,7 +39,6 @@ public class JUNOClient implements Receivable {
 			System.err.println("Error in setting up protocol");
 			e.printStackTrace();
 		}
-
 	}
 
 	@Override
@@ -68,6 +66,10 @@ public class JUNOClient implements Receivable {
 				handleApplication(json);
 				break;
 			}
+			case ("error"): {
+				gui.printToChat(json.getString("message"));
+				break;
+			}
 			}
 		}
 		if (json.has("action")) {
@@ -75,9 +77,7 @@ public class JUNOClient implements Receivable {
 			if (action.equals("dealCard")) {
 				gui.handleDealCard(json);
 			}
-
 		}
-
 	}
 
 	private void handleApplication(JSONObject m) {
@@ -89,10 +89,6 @@ public class JUNOClient implements Receivable {
 			case ("reset"): {
 				System.out.println("reset recieved");
 				gui.resetGamePanel();
-				break;
-			}
-			case ("error"): {
-				gui.printToChat(json.toString());
 				break;
 			}
 			}
@@ -107,7 +103,8 @@ public class JUNOClient implements Receivable {
 					Card.Color color = Card.Color.valueOf(cardMessage.getString("color"));
 					Card card = new Card(color, value);
 					gui.getHandSouth().removeCard(card);
-					// allow fall-through to update discard pile
+					gui.updateDiscardPile(card);
+					break;
 				}
 			}
 			case ("startCard"): {
@@ -119,19 +116,17 @@ public class JUNOClient implements Receivable {
 				break;
 			}
 			case ("cardDealt"): {
-				handleCardDealt(message);
+				String player = message.getString("user");
+				if (!player.equals(this.username)) {
+					gui.handleCardDealt(player);
+				}
+				break;
+			}
+			case ("turn"): {
+				gui.printToChat("it's " + message.getString("user") + "'s turn");
 				break;
 			}
 			}
-		}
-	}
-
-	// {"type":"application","message":{"action":"startCard","card":"{\"color\":\"YELLOW\",\"value\":\"THREE\"}"}}
-	private void handleCardDealt(JSONObject m) {
-		JSONObject dealtCard = m;
-		String user = dealtCard.getString("user");
-		if (!user.equals(this.username)) {
-			
 		}
 	}
 
@@ -154,9 +149,7 @@ public class JUNOClient implements Receivable {
 				whoIsOutput += " module: " + module;
 
 			gui.printToChat(whoIsOutput);
-
 		}
-
 	}
 
 	public static void main(String[] args) {

@@ -2,8 +2,10 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.GridBagLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +31,7 @@ public class JunoGUI extends JFrame {
 	private String username;
 	private JPanel gamePane, discardPile;
 	private Hand handSouth, handNorth, handWest, handEast;
+	private HashMap<String, Hand> hands;
 
 	public JunoGUI(Protocol protocol, String username) {
 		this.protocol = protocol;
@@ -49,24 +52,29 @@ public class JunoGUI extends JFrame {
 		gamePane = new JPanel(new BorderLayout());
 
 		// setup player hands
-		handSouth = new Hand();
+		handSouth = new Hand(Card.CardOrientation.UP);
 		JScrollPane scrollSouth = new JScrollPane(handSouth, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		gamePane.add(scrollSouth, "South");
-		handNorth = new Hand();
+		hands = new HashMap<>();
+		hands.put(username, handSouth);
+
+		handNorth = new Hand(Card.CardOrientation.UP);
 		JScrollPane scrollNorth = new JScrollPane(handNorth, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		gamePane.add(scrollNorth, "North");
-		handWest = new Hand();
+		handWest = new Hand(Card.CardOrientation.LEFT);
 		JScrollPane scrollWest = new JScrollPane(handWest, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		gamePane.add(scrollWest, "West");
-		handEast = new Hand();
+		handEast = new Hand(Card.CardOrientation.RIGHT);
 		JScrollPane scrollEast = new JScrollPane(handEast, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		gamePane.add(scrollEast, "East");
+
 		// setup discard pile
 		discardPile = new JPanel();
+		discardPile.setLayout(new GridBagLayout());
 		gamePane.add(discardPile, "Center");
 		// setup control buttons for game
 		JPanel gameControl = new JPanel(new FlowLayout());
@@ -85,17 +93,6 @@ public class JunoGUI extends JFrame {
 		gamePane.add(gameControl, "North");
 		contentPane.add(gamePane, "Center");
 
-	}
-
-	private void drawCard() {
-		JSONObject message = new JSONObject();
-		message.put("action", "dealCard");
-		message.put("module", "juno");
-		JSONObject dealCard = new JSONObject();
-		dealCard.put("type", "application");
-		dealCard.put("message", message);
-		protocol.sendMessage(dealCard);
-		System.out.println("recieved: " + dealCard);
 	}
 
 	private void initializeChat() {
@@ -171,6 +168,11 @@ public class JunoGUI extends JFrame {
 		chatInputArea.setText("");
 	}
 
+	public void printToChat(String chat) {
+		chatArea.append(chat + "\n");
+		chatArea.setCaretPosition(chatArea.getDocument().getLength());
+	}
+
 	private void sendStartGame() {
 		resetGamePanel();
 		printToChat("Requesting New Game\n");
@@ -194,13 +196,18 @@ public class JunoGUI extends JFrame {
 		protocol.sendMessage(message);
 	}
 
-	public void printToChat(String chat) {
-		chatArea.append(chat + "\n");
-		chatArea.setCaretPosition(chatArea.getDocument().getLength());
-
+	private void drawCard() {
+		JSONObject message = new JSONObject();
+		message.put("action", "dealCard");
+		message.put("module", "juno");
+		JSONObject dealCard = new JSONObject();
+		dealCard.put("type", "application");
+		dealCard.put("message", message);
+		protocol.sendMessage(dealCard);
+		System.out.println("recieved: " + dealCard);
 	}
 
-	public void placeCard(Card c, String playerHand) {
+	private void placeCard(Card c, String playerHand) {
 		handSouth.addCard(c);
 		gamePane.updateUI();
 	}
@@ -218,6 +225,7 @@ public class JunoGUI extends JFrame {
 		Card card = new Card(color, value);
 		card.addActionListener(e -> playCard(value.toString(), color.toString()));
 		placeCard(card, username);
+
 	}
 
 	private void playCard(String val, String col) {
@@ -234,12 +242,39 @@ public class JunoGUI extends JFrame {
 		protocol.sendMessage(message);
 		System.out.println("sent: " + message);
 	}
-	
+
+	public void handleCardDealt(String player) {
+		if (hands.size() < 4) {
+			if (hands.containsKey(player)) {
+				Hand hand = hands.get(player);
+				hand.addCard(new Card(hand.getOrientaion()));
+				gamePane.updateUI();
+				return;
+			} else if (!hands.containsValue(handWest)) {
+				hands.put(player, handWest);
+				handWest.addCard(new Card(handWest.getOrientaion()));
+				gamePane.updateUI();
+				return;
+			} else if (!hands.containsValue(handEast)) {
+				hands.put(player, handEast);
+				handEast.addCard(new Card(handEast.getOrientaion()));
+				gamePane.updateUI();
+				return;
+			} else if (!hands.containsValue(handNorth)) {
+				hands.put(player, handNorth);
+				handNorth.addCard(new Card(handNorth.getOrientaion()));
+				gamePane.updateUI();
+				return;
+			}
+		}
+	}
+
 	public void updateDiscardPile(Card c) {
 		discardPile.removeAll();
 		discardPile.add(c);
 		discardPile.updateUI();
 	}
+
 	public Hand getHandSouth() {
 		return handSouth;
 	}
