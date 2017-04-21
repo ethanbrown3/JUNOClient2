@@ -20,17 +20,15 @@ import org.json.JSONObject;
 import junoServer.Protocol;
 
 public class JunoGUI extends JFrame {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3617439726342648090L;
 	private JPanel contentPane;
 	private JTextArea chatArea;
 	private JTextArea chatInputArea;
 	private Protocol protocol;
 	private String username;
-	private JPanel gamePane;
-	private Hand hand1, hand2, hand3, hand4;
+	private JPanel gamePane, discardPile;
+	private Hand handSouth, handNorth, handWest, handEast;
 
 	public JunoGUI(Protocol protocol, String username) {
 		this.protocol = protocol;
@@ -45,28 +43,32 @@ public class JunoGUI extends JFrame {
 
 		intializeGameArea();
 		initializeChat();
-
 	}
 
 	private void intializeGameArea() {
 		gamePane = new JPanel(new BorderLayout());
-		hand1 = new Hand();
-		JScrollPane scrollPane1 = new JScrollPane(hand1, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+
+		// setup player hands
+		handSouth = new Hand();
+		JScrollPane scrollSouth = new JScrollPane(handSouth, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		gamePane.add(scrollPane1, "South");
-		hand2 = new Hand();
-		JScrollPane scrollPane2 = new JScrollPane(hand2, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+		gamePane.add(scrollSouth, "South");
+		handNorth = new Hand();
+		JScrollPane scrollNorth = new JScrollPane(handNorth, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		hand3 = new Hand();
-		gamePane.add(scrollPane2, "North");
-		JScrollPane scrollPane3 = new JScrollPane(hand3, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+		gamePane.add(scrollNorth, "North");
+		handWest = new Hand();
+		JScrollPane scrollWest = new JScrollPane(handWest, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		hand4 = new Hand();
-		gamePane.add(scrollPane3, "West");
-		JScrollPane scrollPane4 = new JScrollPane(hand4, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+		gamePane.add(scrollWest, "West");
+		handEast = new Hand();
+		JScrollPane scrollEast = new JScrollPane(handEast, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		gamePane.add(scrollPane4, "East");
-		
+		gamePane.add(scrollEast, "East");
+		// setup discard pile
+		discardPile = new JPanel();
+		gamePane.add(discardPile, "Center");
+		// setup control buttons for game
 		JPanel gameControl = new JPanel(new FlowLayout());
 		// start game button
 		JButton startButton = new JButton("Start Game");
@@ -168,8 +170,9 @@ public class JunoGUI extends JFrame {
 		printToChat(username + ": " + chatSend);
 		chatInputArea.setText("");
 	}
-	
+
 	private void sendStartGame() {
+		resetGamePanel();
 		printToChat("Requesting New Game\n");
 		JSONObject message = new JSONObject();
 		message.put("type", "application");
@@ -178,7 +181,6 @@ public class JunoGUI extends JFrame {
 		action.put("module", "juno");
 		message.put("message", action);
 		protocol.sendMessage(message);
-
 	}
 
 	private void sendResetGame() {
@@ -190,7 +192,6 @@ public class JunoGUI extends JFrame {
 		message.put("message", action);
 		System.out.println("sent: " + message);
 		protocol.sendMessage(message);
-
 	}
 
 	public void printToChat(String chat) {
@@ -200,7 +201,7 @@ public class JunoGUI extends JFrame {
 	}
 
 	public void placeCard(Card c, String playerHand) {
-		hand1.addCard(c);
+		handSouth.addCard(c);
 		gamePane.updateUI();
 	}
 
@@ -208,7 +209,6 @@ public class JunoGUI extends JFrame {
 		gamePane.removeAll();
 		intializeGameArea();
 		gamePane.updateUI();
-
 	}
 
 	public void handleDealCard(JSONObject m) {
@@ -218,7 +218,6 @@ public class JunoGUI extends JFrame {
 		Card card = new Card(color, value);
 		card.addActionListener(e -> playCard(value.toString(), color.toString()));
 		placeCard(card, username);
-
 	}
 
 	private void playCard(String val, String col) {
@@ -235,21 +234,25 @@ public class JunoGUI extends JFrame {
 		protocol.sendMessage(message);
 		System.out.println("sent: " + message);
 	}
-
-	public Hand getHand1() {
-		return hand1;
+	
+	public void updateDiscardPile(Card c) {
+		discardPile.removeAll();
+		discardPile.add(c);
+		discardPile.updateUI();
+	}
+	public Hand getHandSouth() {
+		return handSouth;
 	}
 
-	public Hand getHand2() {
-		return hand2;
+	public Hand getHandNorth() {
+		return handNorth;
 	}
 
-	public Hand getHand3() {
-		return hand3;
+	public Hand getHandWest() {
+		return handWest;
 	}
 
-	public Hand getHand4() {
-		return hand4;
+	public Hand getHandEast() {
+		return handEast;
 	}
-
 }

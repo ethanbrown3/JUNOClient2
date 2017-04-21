@@ -68,7 +68,6 @@ public class JUNOClient implements Receivable {
 				handleApplication(json);
 				break;
 			}
-
 			}
 		}
 		if (json.has("action")) {
@@ -101,28 +100,38 @@ public class JUNOClient implements Receivable {
 		if (message.has("action")) {
 			String action = message.getString("action");
 			switch (action) {
-			case ("cardDealt"): {
-				handleCardDealt(message);
-				break;
-			}
 			case ("playCard"): {
 				if (message.getString("user").equals(this.username)) {
 					JSONObject cardMessage = new JSONObject(message.getString("card"));
 					Card.Value value = Card.Value.valueOf(cardMessage.getString("value"));
 					Card.Color color = Card.Color.valueOf(cardMessage.getString("color"));
 					Card card = new Card(color, value);
-					gui.getHand1().removeCard(card);
+					gui.getHandSouth().removeCard(card);
+					// allow fall-through to update discard pile
 				}
+			}
+			case ("startCard"): {
+				JSONObject cardMessage = new JSONObject(message.getString("card"));
+				Card.Value value = Card.Value.valueOf(cardMessage.getString("value"));
+				Card.Color color = Card.Color.valueOf(cardMessage.getString("color"));
+				Card card = new Card(color, value);
+				gui.updateDiscardPile(card);
+				break;
+			}
+			case ("cardDealt"): {
+				handleCardDealt(message);
+				break;
 			}
 			}
 		}
 	}
 
+	// {"type":"application","message":{"action":"startCard","card":"{\"color\":\"YELLOW\",\"value\":\"THREE\"}"}}
 	private void handleCardDealt(JSONObject m) {
 		JSONObject dealtCard = m;
 		String user = dealtCard.getString("user");
 		if (!user.equals(this.username)) {
-
+			
 		}
 	}
 

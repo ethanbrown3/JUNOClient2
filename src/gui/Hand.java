@@ -9,7 +9,6 @@ public class Hand extends JPanel {
 	private ArrayList<Card> cards;
 
 	public Hand() {
-		// this.username = username;
 		cards = new ArrayList<>();
 
 	}
