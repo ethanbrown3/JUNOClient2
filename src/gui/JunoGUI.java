@@ -66,11 +66,13 @@ public class JunoGUI extends JFrame {
 		JScrollPane scrollNorth = new JScrollPane(handNorth, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		gamePane.add(scrollNorth, "North");
+		
 		handWest = new Hand(Card.CardOrientation.RIGHT);
 		handWest.setLayout(new BoxLayout(handWest, BoxLayout.PAGE_AXIS));
 		JScrollPane scrollWest = new JScrollPane(handWest, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		gamePane.add(scrollWest, "West");
+		
 		handEast = new Hand(Card.CardOrientation.LEFT);
 		handEast.setLayout(new BoxLayout(handEast, BoxLayout.PAGE_AXIS));
 		JScrollPane scrollEast = new JScrollPane(handEast, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,

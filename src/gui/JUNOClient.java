@@ -54,22 +54,22 @@ public class JUNOClient implements Receivable {
 		if (json.has("type")) {
 			String type = json.getString("type");
 			switch (type) {
-			case ("chat"): {
+			case ("chat"):
 				handleChat(json);
 				break;
-			}
-			case ("whois"): {
+
+			case ("whois"):
 				handleWhois(json);
 				break;
-			}
-			case ("application"): {
+
+			case ("application"):
 				handleApplication(json);
 				break;
-			}
-			case ("error"): {
+
+			case ("error"):
 				gui.printToChat(json.getString("message"));
 				break;
-			}
+
 			}
 		}
 		if (json.has("action")) {
@@ -86,17 +86,17 @@ public class JUNOClient implements Receivable {
 		if (message.has("type")) {
 			String type = message.getString("type");
 			switch (type) {
-			case ("reset"): {
+			case ("reset"): 
 				System.out.println("reset recieved");
 				gui.resetGamePanel();
 				break;
-			}
+			
 			}
 		}
 		if (message.has("action")) {
 			String action = message.getString("action");
 			switch (action) {
-			case ("playCard"): {
+			case ("playCard"): 
 				if (message.getString("user").equals(this.username)) {
 					JSONObject cardMessage = new JSONObject(message.getString("card"));
 					Card.Value value = Card.Value.valueOf(cardMessage.getString("value"));
@@ -106,26 +106,26 @@ public class JUNOClient implements Receivable {
 					gui.updateDiscardPile(card);
 					break;
 				}
-			}
-			case ("startCard"): {
+			
+			case ("startCard"): 
 				JSONObject cardMessage = new JSONObject(message.getString("card"));
 				Card.Value value = Card.Value.valueOf(cardMessage.getString("value"));
 				Card.Color color = Card.Color.valueOf(cardMessage.getString("color"));
 				Card card = new Card(color, value);
 				gui.updateDiscardPile(card);
 				break;
-			}
-			case ("cardDealt"): {
+			
+			case ("cardDealt"): 
 				String player = message.getString("user");
 				if (!player.equals(this.username)) {
 					gui.handleCardDealt(player);
 				}
 				break;
-			}
-			case ("turn"): {
+			
+			case ("turn"): 
 				gui.printToChat("it's " + message.getString("user") + "'s turn");
 				break;
-			}
+			
 			}
 		}
 	}

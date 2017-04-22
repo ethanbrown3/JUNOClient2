@@ -26,8 +26,6 @@ public class Hand extends JPanel {
 		updateUI();
 	}
 
-
-
 	public String getUserName() {
 		return username;
 	}
@@ -41,7 +39,6 @@ public class Hand extends JPanel {
 				this.updateUI();
 				break;
 			}
-
 			index++;
 		}
 	}
