@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -36,8 +37,9 @@ public class JunoGUI extends JFrame {
 	public JunoGUI(Protocol protocol, String username) {
 		this.protocol = protocol;
 		this.username = username;
+		this.setTitle("JUNO - " + username);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 800, 500);
+		setBounds(100, 100, 900, 600);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout());
@@ -60,16 +62,19 @@ public class JunoGUI extends JFrame {
 		hands.put(username, handSouth);
 
 		handNorth = new Hand(Card.CardOrientation.UP);
+		handNorth.setLayout(new BoxLayout(handNorth, BoxLayout.LINE_AXIS));
 		JScrollPane scrollNorth = new JScrollPane(handNorth, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		gamePane.add(scrollNorth, "North");
-		handWest = new Hand(Card.CardOrientation.LEFT);
-		JScrollPane scrollWest = new JScrollPane(handWest, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		handWest = new Hand(Card.CardOrientation.RIGHT);
+		handWest.setLayout(new BoxLayout(handWest, BoxLayout.PAGE_AXIS));
+		JScrollPane scrollWest = new JScrollPane(handWest, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		gamePane.add(scrollWest, "West");
-		handEast = new Hand(Card.CardOrientation.RIGHT);
-		JScrollPane scrollEast = new JScrollPane(handEast, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		handEast = new Hand(Card.CardOrientation.LEFT);
+		handEast.setLayout(new BoxLayout(handEast, BoxLayout.PAGE_AXIS));
+		JScrollPane scrollEast = new JScrollPane(handEast, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		gamePane.add(scrollEast, "East");
 
 		// setup discard pile
@@ -92,7 +97,6 @@ public class JunoGUI extends JFrame {
 		gameControl.add(drawCardButton);
 		gamePane.add(gameControl, "North");
 		contentPane.add(gamePane, "Center");
-
 	}
 
 	private void initializeChat() {
@@ -216,6 +220,7 @@ public class JunoGUI extends JFrame {
 		gamePane.removeAll();
 		intializeGameArea();
 		gamePane.updateUI();
+
 	}
 
 	public void handleDealCard(JSONObject m) {
@@ -244,29 +249,29 @@ public class JunoGUI extends JFrame {
 	}
 
 	public void handleCardDealt(String player) {
-		if (hands.size() < 4) {
-			if (hands.containsKey(player)) {
-				Hand hand = hands.get(player);
-				hand.addCard(new Card(hand.getOrientaion()));
-				gamePane.updateUI();
-				return;
-			} else if (!hands.containsValue(handWest)) {
-				hands.put(player, handWest);
-				handWest.addCard(new Card(handWest.getOrientaion()));
-				gamePane.updateUI();
-				return;
-			} else if (!hands.containsValue(handEast)) {
-				hands.put(player, handEast);
-				handEast.addCard(new Card(handEast.getOrientaion()));
-				gamePane.updateUI();
-				return;
-			} else if (!hands.containsValue(handNorth)) {
-				hands.put(player, handNorth);
-				handNorth.addCard(new Card(handNorth.getOrientaion()));
-				gamePane.updateUI();
-				return;
-			}
+		if (hands.containsKey(player)) {
+			Hand hand = hands.get(player);
+			hand.addCard(new Card(hand.getOrientaion()));
+			gamePane.updateUI();
+			return;
+		} else if (!hands.containsValue(handWest)) {
+			hands.put(player, handWest);
+			handWest.addCard(new Card(handWest.getOrientaion()));
+			gamePane.updateUI();
+			return;
+		} else if (!hands.containsValue(handEast)) {
+			hands.put(player, handEast);
+			handEast.addCard(new Card(handEast.getOrientaion()));
+			gamePane.updateUI();
+			return;
+		} else if (!hands.containsValue(handNorth)) {
+			hands.put(player, handNorth);
+			handNorth.addCard(new Card(handNorth.getOrientaion()));
+			gamePane.updateUI();
+			return;
 		}
+		System.out.println("too many players");
+
 	}
 
 	public void updateDiscardPile(Card c) {
