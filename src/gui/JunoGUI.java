@@ -3,6 +3,7 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ public class JunoGUI extends JFrame {
 	private JTextArea chatInputArea;
 	private Protocol protocol;
 	private String username;
-	private JPanel gamePane, discardPile;
+	private JPanel gamePane, discardPile, gameControl;
 	private Hand handSouth, handNorth, handWest, handEast;
 	private HashMap<String, Hand> hands;
 
@@ -39,56 +40,27 @@ public class JunoGUI extends JFrame {
 		this.username = username;
 		this.setTitle("JUNO - " + username);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 900, 600);
+		setBounds(100, 100, 900, 700);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout());
 		setContentPane(contentPane);
-		contentPane.setLayout(new BorderLayout());
-
 		intializeGameArea();
 		initializeChat();
+		initializeGameControl();
 	}
 
-	private void intializeGameArea() {
-		gamePane = new JPanel(new BorderLayout());
-
-		// setup player hands
-		handSouth = new Hand(Card.CardOrientation.UP);
-		JScrollPane scrollSouth = new JScrollPane(handSouth, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		gamePane.add(scrollSouth, "South");
-		hands = new HashMap<>();
-		hands.put(username, handSouth);
-
-		handNorth = new Hand(Card.CardOrientation.UP);
-		handNorth.setLayout(new BoxLayout(handNorth, BoxLayout.LINE_AXIS));
-		JScrollPane scrollNorth = new JScrollPane(handNorth, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		gamePane.add(scrollNorth, "North");
-		
-		handWest = new Hand(Card.CardOrientation.RIGHT);
-		handWest.setLayout(new BoxLayout(handWest, BoxLayout.PAGE_AXIS));
-		JScrollPane scrollWest = new JScrollPane(handWest, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		gamePane.add(scrollWest, "West");
-		
-		handEast = new Hand(Card.CardOrientation.LEFT);
-		handEast.setLayout(new BoxLayout(handEast, BoxLayout.PAGE_AXIS));
-		JScrollPane scrollEast = new JScrollPane(handEast, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		gamePane.add(scrollEast, "East");
-
-		// setup discard pile
-		discardPile = new JPanel();
-		discardPile.setLayout(new GridBagLayout());
-		gamePane.add(discardPile, "Center");
-		// setup control buttons for game
-		JPanel gameControl = new JPanel(new FlowLayout());
+	// setup control buttons for game
+	private void initializeGameControl() {
+		gameControl = new JPanel(new FlowLayout());
 		// start game button
 		JButton startButton = new JButton("Start Game");
 		startButton.addActionListener(e -> sendStartGame());
 		gameControl.add(startButton);
+		// join game button
+		JButton joinButton = new JButton("Join Game");
+		joinButton.addActionListener(e -> sendJoinGame());
+		gameControl.add(joinButton);
 		// reset game button
 		JButton resetButton = new JButton("Reset Game");
 		resetButton.addActionListener(e -> sendResetGame());
@@ -97,7 +69,45 @@ public class JunoGUI extends JFrame {
 		JButton drawCardButton = new JButton("Draw Card");
 		drawCardButton.addActionListener(e -> drawCard());
 		gameControl.add(drawCardButton);
-		gamePane.add(gameControl, "North");
+		contentPane.add(gameControl, "North");
+	}
+
+	private void intializeGameArea() {
+		gamePane = new JPanel(new BorderLayout());
+		// setup player hands
+		handSouth = new Hand(Card.CardOrientation.UP);
+		JScrollPane scrollSouth = new JScrollPane(handSouth);
+		scrollSouth.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollSouth.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+		gamePane.add(scrollSouth, "South");
+		hands = new HashMap<>();
+		hands.put(username, handSouth);
+
+		handNorth = new Hand(Card.CardOrientation.UP);
+		handNorth.setLayout(new BoxLayout(handNorth, BoxLayout.LINE_AXIS));
+		JScrollPane scrollNorth = new JScrollPane(handNorth);
+		scrollNorth.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollNorth.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+		gamePane.add(scrollNorth, "North");
+
+		handWest = new Hand(Card.CardOrientation.RIGHT);
+		handWest.setLayout(new BoxLayout(handWest, BoxLayout.PAGE_AXIS));
+		JScrollPane scrollWest = new JScrollPane(handWest);
+		scrollWest.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollWest.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		gamePane.add(scrollWest, "West");
+
+		handEast = new Hand(Card.CardOrientation.LEFT);
+		handEast.setLayout(new BoxLayout(handEast, BoxLayout.PAGE_AXIS));
+		JScrollPane scrollEast = new JScrollPane(handEast);
+		scrollEast.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollEast.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		gamePane.add(scrollEast, "East");
+
+		// setup discard pile
+		discardPile = new JPanel();
+		discardPile.setLayout(new GridBagLayout());
+		gamePane.add(discardPile, "Center");
 		contentPane.add(gamePane, "Center");
 	}
 
@@ -109,7 +119,6 @@ public class JunoGUI extends JFrame {
 		chatArea.setLineWrap(true);
 		chatArea.setWrapStyleWord(true);
 		JScrollPane chatScroll = new JScrollPane(chatArea);
-		chatScroll.setSize(150, 200);
 		chatScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		chatPane.add(chatScroll, "Center");
 
@@ -191,6 +200,18 @@ public class JunoGUI extends JFrame {
 		protocol.sendMessage(message);
 	}
 
+	private void sendJoinGame() {
+		resetGamePanel();
+		printToChat("Attempting to Join Game\n");
+		JSONObject message = new JSONObject();
+		message.put("type", "application");
+		JSONObject action = new JSONObject();
+		action.put("action", "joinGame");
+		action.put("module", "juno");
+		message.put("message", action);
+		protocol.sendMessage(message);
+	}
+
 	private void sendResetGame() {
 		JSONObject message = new JSONObject();
 		message.put("type", "application");
@@ -220,6 +241,7 @@ public class JunoGUI extends JFrame {
 
 	public void resetGamePanel() {
 		gamePane.removeAll();
+		contentPane.remove(gamePane);
 		intializeGameArea();
 		gamePane.updateUI();
 
@@ -276,6 +298,24 @@ public class JunoGUI extends JFrame {
 
 	}
 
+	public void handlePlayCard(JSONObject message) {
+		JSONObject cardMessage = new JSONObject(message.getString("card"));
+		String player = message.getString("user");
+		Card.Value value = Card.Value.valueOf(cardMessage.getString("value"));
+		Card.Color color = Card.Color.valueOf(cardMessage.getString("color"));
+		Card card = new Card(color, value);
+		updateDiscardPile(card);
+		if (player.equals(this.username)) {
+			getHandSouth().removeCard(card);
+		} else {
+			if (hands.containsKey(player)) {
+				Hand hand = hands.get(player);
+				hand.removeBlankCard();
+			}
+		}
+
+	}
+
 	public void updateDiscardPile(Card c) {
 		discardPile.removeAll();
 		discardPile.add(c);
@@ -297,4 +337,5 @@ public class JunoGUI extends JFrame {
 	public Hand getHandEast() {
 		return handEast;
 	}
+
 }

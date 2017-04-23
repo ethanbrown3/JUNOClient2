@@ -78,54 +78,63 @@ public class JUNOClient implements Receivable {
 				gui.handleDealCard(json);
 			}
 		}
+		if (json.has("players")) {
+			//get start card
+			JSONObject cardMessage = new JSONObject(json.getString("card"));
+			Card.Value value = Card.Value.valueOf(cardMessage.getString("value"));
+			Card.Color color = Card.Color.valueOf(cardMessage.getString("color"));
+			Card card = new Card(color, value);
+			gui.updateDiscardPile(card);
+			
+			JSONArray playersMessage = new JSONArray();
+			playersMessage.put(json.get("players"));
+			for (int i = 0; i < playersMessage.length(); i++) {
+				//TODO late comer player backs
+			}
+		}
 	}
-
+//{"type":"application","message":{"action":"startCard","card":{"color":"YELLOW","value":"SKIP"}}}	
+//{"type":"application","message":{"action":"startCard","card":"{\"color\":\"BLUE\",\"value\":\"TWO\"}"}}	
+//{"players":[{"Ethan":7}],"action":"startCard","turn":"Ethan","card":"{\"color\":\"RED\",\"value\":\"FIVE\"}"}
 	private void handleApplication(JSONObject m) {
 		JSONObject json = m;
 		JSONObject message = json.getJSONObject("message");
 		if (message.has("type")) {
 			String type = message.getString("type");
 			switch (type) {
-			case ("reset"): 
+			case ("reset"):
 				System.out.println("reset recieved");
 				gui.resetGamePanel();
 				break;
-			
+
 			}
 		}
 		if (message.has("action")) {
 			String action = message.getString("action");
 			switch (action) {
-			case ("playCard"): 
-				if (message.getString("user").equals(this.username)) {
-					JSONObject cardMessage = new JSONObject(message.getString("card"));
-					Card.Value value = Card.Value.valueOf(cardMessage.getString("value"));
-					Card.Color color = Card.Color.valueOf(cardMessage.getString("color"));
-					Card card = new Card(color, value);
-					gui.getHandSouth().removeCard(card);
-					gui.updateDiscardPile(card);
-					break;
-				}
-			
-			case ("startCard"): 
+			case ("playCard"):
+				gui.handlePlayCard(message);
+				break;
+
+			case ("startCard"):
 				JSONObject cardMessage = new JSONObject(message.getString("card"));
 				Card.Value value = Card.Value.valueOf(cardMessage.getString("value"));
 				Card.Color color = Card.Color.valueOf(cardMessage.getString("color"));
 				Card card = new Card(color, value);
 				gui.updateDiscardPile(card);
 				break;
-			
-			case ("cardDealt"): 
+
+			case ("cardDealt"):
 				String player = message.getString("user");
 				if (!player.equals(this.username)) {
 					gui.handleCardDealt(player);
 				}
 				break;
-			
-			case ("turn"): 
+
+			case ("turn"):
 				gui.printToChat("it's " + message.getString("user") + "'s turn");
 				break;
-			
+
 			}
 		}
 	}

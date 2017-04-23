@@ -14,12 +14,12 @@ public class Hand extends JPanel {
 	private String username;
 	private ArrayList<Card> cards;
 	private CardOrientation orientation;
-	
+
 	public Hand(CardOrientation o) {
 		setOrientation(o);
 		cards = new ArrayList<>();
 	}
-	
+
 	public void addCard(Card c) {
 		add(c);
 		cards.add(c);
@@ -43,10 +43,19 @@ public class Hand extends JPanel {
 		}
 	}
 
+	public void removeBlankCard() {
+		if (!cards.isEmpty()) {
+			this.remove(cards.get(0));
+			cards.remove(0);
+		}
+	}
+
 	public CardOrientation getOrientaion() {
 		return orientation;
 	}
+
 	private void setOrientation(CardOrientation o) {
 		orientation = o;
 	}
+
 }
