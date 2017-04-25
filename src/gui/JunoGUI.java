@@ -6,6 +6,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,7 +22,6 @@ import javax.swing.border.EmptyBorder;
 
 import org.json.JSONObject;
 
-import gui.Card.Value;
 import junoServer.Protocol;
 
 public class JunoGUI extends JFrame {
@@ -49,34 +49,42 @@ public class JunoGUI extends JFrame {
 		intializeGameArea();
 		initializeChat();
 		initializeGameControl();
+	    
 	}
 
-	// setup control buttons for game
 	private void initializeGameControl() {
 		gameControl = new JPanel(new FlowLayout());
-		// start game button
+
 		JButton startButton = new JButton("Start Game");
 		startButton.addActionListener(e -> sendStartGame());
 		gameControl.add(startButton);
-		// join game button
+
 		JButton joinButton = new JButton("Join Game");
 		joinButton.addActionListener(e -> sendJoinGame());
 		gameControl.add(joinButton);
-		// reset game button
+
 		JButton resetButton = new JButton("Reset Game");
 		resetButton.addActionListener(e -> sendResetGame());
 		gameControl.add(resetButton);
-		// draw card button
+
 		JButton drawCardButton = new JButton("Draw Card");
 		drawCardButton.addActionListener(e -> drawCard());
 		gameControl.add(drawCardButton);
+		
+		JButton callUno = new JButton("UNO!");
+		drawCardButton.addActionListener(e -> callUno());
+		gameControl.add(callUno);
+		
 		contentPane.add(gameControl, "North");
+
+		
 	}
 
 	private void intializeGameArea() {
 		gamePane = new JPanel(new BorderLayout());
-		// setup player hands
+
 		handSouth = new Hand(Card.CardOrientation.UP);
+		handSouth.setUserName(username);
 		JScrollPane scrollSouth = new JScrollPane(handSouth);
 		scrollSouth.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollSouth.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
@@ -105,7 +113,6 @@ public class JunoGUI extends JFrame {
 		scrollEast.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		gamePane.add(scrollEast, "East");
 
-		// setup discard pile
 		discardPile = new JPanel();
 		discardPile.setLayout(new GridBagLayout());
 		gamePane.add(discardPile, "Center");
@@ -113,7 +120,6 @@ public class JunoGUI extends JFrame {
 	}
 
 	private void initializeChat() {
-		// center panel
 		JPanel chatPane = new JPanel(new BorderLayout());
 		chatArea = new JTextArea();
 		chatArea.setEditable(false);
@@ -123,7 +129,6 @@ public class JunoGUI extends JFrame {
 		chatScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		chatPane.add(chatScroll, "Center");
 
-		// south panel
 		JPanel inputPanel = new JPanel(new FlowLayout());
 		chatInputArea = new JTextArea(3, 15);
 		chatInputArea.setEditable(true);
@@ -141,7 +146,6 @@ public class JunoGUI extends JFrame {
 			}
 		});
 
-		// send button setup
 		JButton send = new JButton("Send");
 		inputPanel.add(send);
 		send.addActionListener(e -> sendChat());
@@ -152,6 +156,11 @@ public class JunoGUI extends JFrame {
 		chatInputArea.requestFocusInWindow();
 	}
 
+	public void printToChat(String chat) {
+		chatArea.append(chat + "\n");
+		chatArea.setCaretPosition(chatArea.getDocument().getLength());
+	}
+	
 	private void sendChat() {
 		JSONObject message = new JSONObject();
 
@@ -182,11 +191,6 @@ public class JunoGUI extends JFrame {
 		protocol.sendMessage(message);
 		printToChat(username + ": " + chatSend);
 		chatInputArea.setText("");
-	}
-
-	public void printToChat(String chat) {
-		chatArea.append(chat + "\n");
-		chatArea.setCaretPosition(chatArea.getDocument().getLength());
 	}
 
 	private void sendStartGame() {
@@ -220,7 +224,6 @@ public class JunoGUI extends JFrame {
 		action.put("action", "reset");
 		action.put("module", "juno");
 		message.put("message", action);
-		System.out.println("sent: " + message);
 		protocol.sendMessage(message);
 	}
 
@@ -232,9 +235,19 @@ public class JunoGUI extends JFrame {
 		dealCard.put("type", "application");
 		dealCard.put("message", message);
 		protocol.sendMessage(dealCard);
-		System.out.println("recieved: " + dealCard);
 	}
-
+	
+	private void callUno() {
+		JSONObject unoMessage = new JSONObject();
+		unoMessage.put("type", "application");
+		JSONObject message = new JSONObject();
+		message.put("action", "callUno");
+		message.put("user", username);
+		message.put("module", "juno");
+		unoMessage.put("message", message);
+		protocol.sendMessage(unoMessage);
+	}
+	
 	private void placeCard(Card c) {
 		handSouth.addCard(c);
 		gamePane.updateUI();
@@ -279,12 +292,12 @@ public class JunoGUI extends JFrame {
 		message.put("type", "application");
 		message.put("message", action);
 		protocol.sendMessage(message);
-		System.out.println("sent: " + message);
 	}
 
 	public void handleCardDealt(String player) {
 		if (hands.containsKey(player)) {
 			Hand hand = hands.get(player);
+			hand.setUserName(player);
 			hand.addCard(new Card(hand.getOrientaion()));
 			gamePane.updateUI();
 			return;
@@ -305,7 +318,7 @@ public class JunoGUI extends JFrame {
 			return;
 		}
 		System.out.println("too many players");
-
+		printToChat("over 4 players in game.");
 	}
 
 	public void handlePlayCard(JSONObject message) {
@@ -334,5 +347,18 @@ public class JunoGUI extends JFrame {
 
 	public Hand getPlayerHand() {
 		return handSouth;
+	}
+
+	
+	public void setTurn(JSONObject m) {
+		JSONObject message = m;
+		String user = message.getString("user");
+		if (hands.containsKey(user)) {
+			for (Entry<String, Hand> h : hands.entrySet()) {
+				h.getValue().resetTurnHighlight();
+			}
+			hands.get(user).setTurnHighlight();
+		}
+		
 	}
 }

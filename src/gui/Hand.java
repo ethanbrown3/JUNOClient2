@@ -1,8 +1,10 @@
 package gui;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
 
 import gui.Card.CardOrientation;
 
@@ -26,8 +28,9 @@ public class Hand extends JPanel {
 		updateUI();
 	}
 
-	public String getUserName() {
-		return username;
+	public void setUserName(String user) {
+		this.username = user;
+		this.setBorder(new TitledBorder(username));
 	}
 
 	public void removeCard(Card card) {
@@ -41,6 +44,13 @@ public class Hand extends JPanel {
 			}
 			index++;
 		}
+	}
+	
+	public void setTurnHighlight() {
+		this.setBackground(Color.LIGHT_GRAY);
+	}
+	public void resetTurnHighlight() {
+		this.setBackground(null);
 	}
 
 	public void removeBlankCard() {

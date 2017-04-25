@@ -80,10 +80,6 @@ public class JUNOClient implements Receivable {
 		}
 	}
 
-	// {"type":"application","message":{"action":"win","username":"Ethan"}}
-	// {"type":"application","message":{"action":"startCard","card":{"color":"YELLOW","value":"SKIP"}}}
-	// {"type":"application","message":{"action":"startCard","card":"{\"color\":\"BLUE\",\"value\":\"TWO\"}"}}
-	// {"players":[{"Ethan":7}],"action":"startCard","turn":"Ethan","card":"{\"color\":\"RED\",\"value\":\"FIVE\"}"}
 	private void handleApplication(JSONObject m) {
 		JSONObject json = m;
 		JSONObject message = json.getJSONObject("message");
@@ -91,7 +87,6 @@ public class JUNOClient implements Receivable {
 			String type = message.getString("type");
 			switch (type) {
 			case ("reset"):
-				System.out.println("reset recieved");
 				gui.resetGamePanel();
 				break;
 
@@ -107,7 +102,6 @@ public class JUNOClient implements Receivable {
 			case ("startCard"):
 				if (message.has("players")) {
 					JSONArray playersMessage = message.getJSONArray("players");
-					System.out.println(playersMessage.length());
 					for (Object p : playersMessage) {
 						if (p instanceof JSONObject) {
 							JSONObject player = (JSONObject) p;
@@ -135,13 +129,14 @@ public class JUNOClient implements Receivable {
 			
 			case ("turn"):
 				gui.printToChat("it's " + message.getString("user") + "'s turn");
+				gui.setTurn(message);
 				break;
 			case ("win"):
 				String winner = message.getString("username");
 				if (winner.equals(username)) {
 					gui.printToChat("You Win!");
 				} else {
-					System.out.println(winner + "won!");
+					gui.printToChat(winner + " Won! Better luck next time, noob!");
 				}
 				break;
 			}
