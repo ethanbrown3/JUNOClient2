@@ -86,10 +86,10 @@ public class JUNOClient implements Receivable {
 			Card card = new Card(color, value);
 			gui.updateDiscardPile(card);
 			
-			JSONArray playersMessage = new JSONArray();
-			playersMessage.put(json.get("players"));
+			JSONArray playersMessage = json.getJSONArray("players");
+			System.out.println(playersMessage.length());
 			for (int i = 0; i < playersMessage.length(); i++) {
-				//TODO late comer player backs
+				System.out.println(playersMessage.getJSONObject(i).toString());
 			}
 		}
 	}
