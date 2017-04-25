@@ -78,24 +78,12 @@ public class JUNOClient implements Receivable {
 				gui.handleDealCard(json);
 			}
 		}
-		if (json.has("players")) {
-			//get start card
-			JSONObject cardMessage = new JSONObject(json.getString("card"));
-			Card.Value value = Card.Value.valueOf(cardMessage.getString("value"));
-			Card.Color color = Card.Color.valueOf(cardMessage.getString("color"));
-			Card card = new Card(color, value);
-			gui.updateDiscardPile(card);
-			
-			JSONArray playersMessage = json.getJSONArray("players");
-			System.out.println(playersMessage.length());
-			for (int i = 0; i < playersMessage.length(); i++) {
-				System.out.println(playersMessage.getJSONObject(i).toString());
-			}
-		}
 	}
-//{"type":"application","message":{"action":"startCard","card":{"color":"YELLOW","value":"SKIP"}}}	
-//{"type":"application","message":{"action":"startCard","card":"{\"color\":\"BLUE\",\"value\":\"TWO\"}"}}	
-//{"players":[{"Ethan":7}],"action":"startCard","turn":"Ethan","card":"{\"color\":\"RED\",\"value\":\"FIVE\"}"}
+
+	// {"type":"application","message":{"action":"win","username":"Ethan"}}
+	// {"type":"application","message":{"action":"startCard","card":{"color":"YELLOW","value":"SKIP"}}}
+	// {"type":"application","message":{"action":"startCard","card":"{\"color\":\"BLUE\",\"value\":\"TWO\"}"}}
+	// {"players":[{"Ethan":7}],"action":"startCard","turn":"Ethan","card":"{\"color\":\"RED\",\"value\":\"FIVE\"}"}
 	private void handleApplication(JSONObject m) {
 		JSONObject json = m;
 		JSONObject message = json.getJSONObject("message");
@@ -117,6 +105,20 @@ public class JUNOClient implements Receivable {
 				break;
 
 			case ("startCard"):
+				if (message.has("players")) {
+					JSONArray playersMessage = message.getJSONArray("players");
+					System.out.println(playersMessage.length());
+					for (Object p : playersMessage) {
+						if (p instanceof JSONObject) {
+							JSONObject player = (JSONObject) p;
+							int numOfCards = (int) player.get("cards");
+							for (int i = 0; i < numOfCards; i++) {
+								gui.handleCardDealt(player.getString("username"));
+							}
+						}
+					}
+					gui.printToChat("it's " + message.getString("turn") + "'s turn");
+				}
 				JSONObject cardMessage = new JSONObject(message.getString("card"));
 				Card.Value value = Card.Value.valueOf(cardMessage.getString("value"));
 				Card.Color color = Card.Color.valueOf(cardMessage.getString("color"));
@@ -130,11 +132,18 @@ public class JUNOClient implements Receivable {
 					gui.handleCardDealt(player);
 				}
 				break;
-
+			
 			case ("turn"):
 				gui.printToChat("it's " + message.getString("user") + "'s turn");
 				break;
-
+			case ("win"):
+				String winner = message.getString("username");
+				if (winner.equals(username)) {
+					gui.printToChat("You Win!");
+				} else {
+					System.out.println(winner + "won!");
+				}
+				break;
 			}
 		}
 	}

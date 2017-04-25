@@ -46,15 +46,15 @@ public class Card extends JButton {
 		setIcon(cardImage);
 	}
 
-	private Color getColor() {
+	public Color getColor() {
 		return color;
 	}
 
-	private void setColor(Color color) {
+	public void setColor(Color color) {
 		this.color = color;
 	}
 
-	private Value getValue() {
+	public Value getValue() {
 		return value;
 	}
 

@@ -3,7 +3,6 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
@@ -13,6 +12,7 @@ import java.util.regex.Pattern;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -21,6 +21,7 @@ import javax.swing.border.EmptyBorder;
 
 import org.json.JSONObject;
 
+import gui.Card.Value;
 import junoServer.Protocol;
 
 public class JunoGUI extends JFrame {
@@ -234,7 +235,7 @@ public class JunoGUI extends JFrame {
 		System.out.println("recieved: " + dealCard);
 	}
 
-	private void placeCard(Card c, String playerHand) {
+	private void placeCard(Card c) {
 		handSouth.addCard(c);
 		gamePane.updateUI();
 	}
@@ -251,9 +252,18 @@ public class JunoGUI extends JFrame {
 		JSONObject message = new JSONObject(m.getString("card"));
 		Card.Value value = Card.Value.valueOf(message.getString("value"));
 		Card.Color color = Card.Color.valueOf(message.getString("color"));
+
 		Card card = new Card(color, value);
-		card.addActionListener(e -> playCard(value.toString(), color.toString()));
-		placeCard(card, username);
+		card.addActionListener(e -> {
+			if (card.getColor() == Card.Color.WILD) {
+				String[] colors = { "RED", "BLUE", "GREEN", "YELLOW" };
+				String wildColor = (String) JOptionPane.showInputDialog(null, "Choose a color", "Color Selection",
+						JOptionPane.QUESTION_MESSAGE, null, colors, colors[0]);
+				card.setColor(Card.Color.valueOf(wildColor));
+			}
+			playCard(card.getValue().toString(), card.getColor().toString());
+		});
+		placeCard(card);
 
 	}
 
@@ -306,7 +316,7 @@ public class JunoGUI extends JFrame {
 		Card card = new Card(color, value);
 		updateDiscardPile(card);
 		if (player.equals(this.username)) {
-			getHandSouth().removeCard(card);
+			getPlayerHand().removeCard(card);
 		} else {
 			if (hands.containsKey(player)) {
 				Hand hand = hands.get(player);
@@ -322,20 +332,7 @@ public class JunoGUI extends JFrame {
 		discardPile.updateUI();
 	}
 
-	public Hand getHandSouth() {
+	public Hand getPlayerHand() {
 		return handSouth;
 	}
-
-	public Hand getHandNorth() {
-		return handNorth;
-	}
-
-	public Hand getHandWest() {
-		return handWest;
-	}
-
-	public Hand getHandEast() {
-		return handEast;
-	}
-
 }
