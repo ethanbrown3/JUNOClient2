@@ -1,3 +1,9 @@
+/**
+ * JunoGUI
+ * @author Ethan Brown
+ * CS 3230
+ * Apr 19, 2017
+ */
 package gui;
 
 import java.awt.BorderLayout;
@@ -23,10 +29,13 @@ import javax.swing.border.EmptyBorder;
 import org.json.JSONObject;
 
 import junoServer.Protocol;
-
+/**
+ * @author Ethan
+ *
+ */
 public class JunoGUI extends JFrame {
 
-	private static final long serialVersionUID = 3617439726342648090L;
+	private static final long serialVersionUID = 8914462940881447191L;
 	private JPanel contentPane;
 	private JTextArea chatArea;
 	private JTextArea chatInputArea;
@@ -35,6 +44,7 @@ public class JunoGUI extends JFrame {
 	private JPanel gamePane, discardPile, gameControl;
 	private Hand handSouth, handNorth, handWest, handEast;
 	private HashMap<String, Hand> hands;
+	JScrollPane scrollSouth;
 
 	public JunoGUI(Protocol protocol, String username) {
 		this.protocol = protocol;
@@ -66,6 +76,10 @@ public class JunoGUI extends JFrame {
 		JButton resetButton = new JButton("Reset Game");
 		resetButton.addActionListener(e -> sendResetGame());
 		gameControl.add(resetButton);
+		
+		JButton quitButton = new JButton("Quit Game");
+		quitButton.addActionListener(e -> sendQuitGame());
+		gameControl.add(quitButton);
 
 		JButton drawCardButton = new JButton("Draw Card");
 		drawCardButton.addActionListener(e -> drawCard());
@@ -79,12 +93,14 @@ public class JunoGUI extends JFrame {
 
 	}
 
+
+
 	private void intializeGameArea() {
 		gamePane = new JPanel(new BorderLayout());
 
 		handSouth = new Hand(Card.CardOrientation.UP);
 		handSouth.setUserName(username);
-		JScrollPane scrollSouth = new JScrollPane(handSouth);
+		scrollSouth = new JScrollPane(handSouth);
 		scrollSouth.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollSouth.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		gamePane.add(scrollSouth, "South");
@@ -225,7 +241,17 @@ public class JunoGUI extends JFrame {
 		message.put("message", action);
 		protocol.sendMessage(message);
 	}
-
+	
+	private void sendQuitGame() {
+		JSONObject message = new JSONObject();
+		message.put("type", "application");
+		JSONObject action = new JSONObject();
+		action.put("action", "quit");
+		action.put("module", "juno");
+		message.put("message", action);
+		protocol.sendMessage(message);
+	}
+	
 	private void drawCard() {
 		JSONObject message = new JSONObject();
 		message.put("action", "dealCard");
@@ -249,6 +275,7 @@ public class JunoGUI extends JFrame {
 
 	private void placeCard(Card c) {
 		handSouth.addCard(c);
+		scrollSouth.getViewport().setViewPosition(new java.awt.Point(20000,0));
 		gamePane.updateUI();
 	}
 
@@ -273,13 +300,17 @@ public class JunoGUI extends JFrame {
 
 				Object selection = JOptionPane.showInputDialog(null, "Choose a color", "Color Selection",
 						JOptionPane.QUESTION_MESSAGE, null, colors, colors[0]);
-
-				if (selection.equals(JOptionPane.CANCEL_OPTION)) {
-					wildColor = (String) selection;
+				
+				wildColor = (String) selection;
+				if (!(wildColor == null)) {
 					card.setColor(Card.Color.valueOf(wildColor));
+					playCard(card.getValue().toString(), card.getColor().toString());
 				}
+
+			} else {
+				playCard(card.getValue().toString(), card.getColor().toString());
 			}
-			playCard(card.getValue().toString(), card.getColor().toString());
+
 		});
 		placeCard(card);
 

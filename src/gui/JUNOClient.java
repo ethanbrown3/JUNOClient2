@@ -126,11 +126,26 @@ public class JUNOClient implements Receivable {
 					gui.handleCardDealt(player);
 				}
 				break;
-			
+
 			case ("turn"):
-				gui.printToChat("it's " + message.getString("user") + "'s turn");
+				String whosTurn = message.getString("user");
+				if (whosTurn.equals(username)) {
+					gui.printToChat("it's your turn");
+				} else {
+					gui.printToChat("it's " + whosTurn + "'s turn");
+				}
 				gui.setTurn(message);
 				break;
+
+			case ("callUno"):
+				String unoCaller = message.getString("user");
+				if (unoCaller.equals(username)) {
+					gui.printToChat("You called Uno");
+				} else {
+					gui.printToChat(unoCaller + " called Uno");
+				}
+				break;
+
 			case ("win"):
 				String winner = message.getString("username");
 				if (winner.equals(username)) {
@@ -139,8 +154,16 @@ public class JUNOClient implements Receivable {
 					gui.printToChat(winner + " Won! Better luck next time, noob!");
 				}
 				break;
-			case ("callUno"):
-				gui.printToChat(message.getString("user") + " called Uno");
+
+			case ("quit"):
+				String quitter = message.getString("username");
+				if (quitter.equals(username)) {
+					gui.printToChat("You Quit");
+					gui.resetGamePanel();
+				} else {
+					gui.printToChat(quitter + " Quit the game");
+				}
+				break;
 			}
 		}
 	}

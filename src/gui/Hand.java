@@ -1,3 +1,9 @@
+/**
+ * JunoGUI
+ * @author Ethan Brown
+ * CS 3230
+ * 
+ */
 package gui;
 
 import java.awt.Color;
@@ -8,11 +14,12 @@ import javax.swing.border.TitledBorder;
 
 import gui.Card.CardOrientation;
 
+/**
+ * @author Ethan
+ */
 public class Hand extends JPanel {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5586729830433228986L;
+
+	private static final long serialVersionUID = 2509340819361053504L;
 	private String username;
 	private ArrayList<Card> cards;
 	private CardOrientation orientation;
