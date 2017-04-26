@@ -139,6 +139,8 @@ public class JUNOClient implements Receivable {
 					gui.printToChat(winner + " Won! Better luck next time, noob!");
 				}
 				break;
+			case ("callUno"):
+				gui.printToChat(message.getString("user") + " called Uno");
 			}
 		}
 	}

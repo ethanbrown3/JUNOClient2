@@ -72,7 +72,7 @@ public class JunoGUI extends JFrame {
 		gameControl.add(drawCardButton);
 		
 		JButton callUno = new JButton("UNO!");
-		drawCardButton.addActionListener(e -> callUno());
+		callUno.addActionListener(e -> callUno());
 		gameControl.add(callUno);
 		
 		contentPane.add(gameControl, "North");
