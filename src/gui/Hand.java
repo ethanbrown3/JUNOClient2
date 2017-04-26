@@ -34,7 +34,6 @@ public class Hand extends JPanel {
 	}
 
 	public void removeCard(Card card) {
-		System.out.println("removeCard()");
 		int index = 0;
 		for (Card c : cards) {
 			if (card.equals(c)) {
