@@ -49,7 +49,7 @@ public class JunoGUI extends JFrame {
 		intializeGameArea();
 		initializeChat();
 		initializeGameControl();
-	    
+
 	}
 
 	private void initializeGameControl() {
@@ -70,14 +70,13 @@ public class JunoGUI extends JFrame {
 		JButton drawCardButton = new JButton("Draw Card");
 		drawCardButton.addActionListener(e -> drawCard());
 		gameControl.add(drawCardButton);
-		
+
 		JButton callUno = new JButton("UNO!");
 		callUno.addActionListener(e -> callUno());
 		gameControl.add(callUno);
-		
+
 		contentPane.add(gameControl, "North");
 
-		
 	}
 
 	private void intializeGameArea() {
@@ -160,14 +159,14 @@ public class JunoGUI extends JFrame {
 		chatArea.append(chat + "\n");
 		chatArea.setCaretPosition(chatArea.getDocument().getLength());
 	}
-	
+
 	private void sendChat() {
 		JSONObject message = new JSONObject();
 
 		String chatSend;
 		chatSend = chatInputArea.getText();
 
-		// check for whois message
+		// check for /whois message
 		if (chatSend.equals("/whois")) {
 			message.put("type", "whois");
 			protocol.sendMessage(message);
@@ -236,7 +235,7 @@ public class JunoGUI extends JFrame {
 		dealCard.put("message", message);
 		protocol.sendMessage(dealCard);
 	}
-	
+
 	private void callUno() {
 		JSONObject unoMessage = new JSONObject();
 		unoMessage.put("type", "application");
@@ -247,7 +246,7 @@ public class JunoGUI extends JFrame {
 		unoMessage.put("message", message);
 		protocol.sendMessage(unoMessage);
 	}
-	
+
 	private void placeCard(Card c) {
 		handSouth.addCard(c);
 		gamePane.updateUI();
@@ -270,9 +269,15 @@ public class JunoGUI extends JFrame {
 		card.addActionListener(e -> {
 			if (card.getColor() == Card.Color.WILD) {
 				String[] colors = { "RED", "BLUE", "GREEN", "YELLOW" };
-				String wildColor = (String) JOptionPane.showInputDialog(null, "Choose a color", "Color Selection",
+				String wildColor = "cancel";
+
+				Object selection = JOptionPane.showInputDialog(null, "Choose a color", "Color Selection",
 						JOptionPane.QUESTION_MESSAGE, null, colors, colors[0]);
-				card.setColor(Card.Color.valueOf(wildColor));
+
+				if (selection.equals(JOptionPane.CANCEL_OPTION)) {
+					wildColor = (String) selection;
+					card.setColor(Card.Color.valueOf(wildColor));
+				}
 			}
 			playCard(card.getValue().toString(), card.getColor().toString());
 		});
@@ -349,7 +354,6 @@ public class JunoGUI extends JFrame {
 		return handSouth;
 	}
 
-	
 	public void setTurn(JSONObject m) {
 		JSONObject message = m;
 		String user = message.getString("user");
@@ -359,6 +363,6 @@ public class JunoGUI extends JFrame {
 			}
 			hands.get(user).setTurnHighlight();
 		}
-		
+
 	}
 }
